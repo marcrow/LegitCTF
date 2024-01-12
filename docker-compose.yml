@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: ChangeMe__________
+      MARIADB_USER: ctf-server
+      MARIADB_PASSWORD: CrazyP@ssw0rd.-_-.
+      MARIADB_DATABASE: esgi_db
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - app-network
+
+  app:
+    build: .
+    environment:
+      DB_HOST: db 
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+
+networks:
+  app-network:
