@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dbService = require('./src/services/dbService'); // Database service
 const apiRouter = require('./src/routes/apiRouter'); // Adjust the path as necessary
-const { validateQueryInteger } = require('./src/middlewares/securityControls');
+const { validateArgs } = require('./src/middlewares/securityControls');
 
 app.use(express.static('public')); // Serve static files from the public directory
 
@@ -34,8 +34,8 @@ app.get('/chart', async (req, res) => {
     }
 });
 
-app.get('/data', async (req, res) => {
-    const ctfId = validateQueryInteger(req.query.ctf_id); // Get ctf_id from query parameters
+app.get('/data', validateArgs, async (req, res) => {
+    const ctfId = req.query.ctf_id; // Get ctf_id from query parameters
     console.log(ctfId)
     if (!ctfId || ctfId==-1) {
         return res.status(400).send('CTF ID is required');

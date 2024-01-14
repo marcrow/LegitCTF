@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { validateInteger } = require('../middlewares/securityControls'); // Adjust the path as necessary
 const dbService = require('../services/dbService'); // Adjust the path as necessary
-const { validateQueryInteger } = require('../middlewares/securityControls');
+const { validateArgs } = require('../middlewares/securityControls');
 const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
 
 
@@ -37,12 +37,10 @@ router.get('/listCtfs', async (req, res) => {
     }
 });
 
-router.get('/data', async (req, res) => {
-    const ctfId = validateQueryInteger(req.query.ctf_id); // Get ctf_id from query parameters
-    if (!ctfId || ctfId==-1) {
-        return res.status(400).send('CTF ID is required');
-    }
+router.get('/data', validateArgs, async (req, res) => {
+    const ctfId = req.query.ctf_id; // Get ctf_id from query parameters
     pwn_date = ""
+    console.log("req.params.date: ", req.query)
     if(!req.query.date){
         //getLastpawn
         let pwnDate = await dbService.getLastPwn(ctfId);
@@ -55,13 +53,11 @@ router.get('/data', async (req, res) => {
         }
     }
     else{
-        const dateInt = validateQueryInteger(req.query.date); // Get ctf_id from query parameters
-        if(dateInt == -1){
-            return res.status(400).send('Date format not supported');
-        }
+        const dateInt = req.query.date; // Get ctf_id from query parameters
         pwn_date = convertToDateSQL(dateInt);
     }
     try {
+        console.log("pwn_date: ", pwn_date);
         const data = await dbService.getPwnedInfoByDate(ctfId, pwn_date);
         res.json(data);
     } catch (err) {

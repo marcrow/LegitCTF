@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Compromised Machines Chart</title>
+        <title>CTF View</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <!-- Include Moment.js and the Chart.js Moment adapter -->
         <script src="https://cdn.jsdelivr.net/npm/moment"></script>
@@ -10,9 +10,11 @@
     </head>
 <body>
     <div id="ctf-dropdown-container"></div>
+    <div id="date-dropdown-container"></div>
     <div id="ctfDetails">Loading CTF details...</div>
     <!-- <script type="text/javascript"src="/public/ctfinfo.js"></script> -->
     <h1>Compromised Machines Over Time</h1>
+    <input type="checkbox" id="previousPoint"><label>Afficher les points précédents.</label></input>
     <canvas id="compromisedChart" width="800" height="400"></canvas>
 
     <script src="/ctfInfo.js"></script>
