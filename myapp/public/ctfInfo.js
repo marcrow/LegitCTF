@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     await listCtf();
     ctfId = retrieveCtfIdFromDropdown();
     await fetchCtfDetails(ctfId);
-    
+
     attachDropdownListener();
     attachCheckboxListener();
     updateGraphBySelection(ctfId);
@@ -19,7 +19,7 @@ function attachDropdownListener() {
             const ctfId = event.target.value;
             await fetchCtfDetails(ctfId);
             const date = retrieveDateFromDropdown();
-            updateGraphBySelection(ctfId,date);
+            updateGraphBySelection(ctfId, date);
 
         }
     });
@@ -44,8 +44,10 @@ function attachCheckboxListener() {
 }
 
 function updateGraphBySelection(ctf_id, date = null) {
-    resetChart();
-    generate_graph(ctf_id, date);
+    resetChart("compromisedChart");
+    generate_daily_graph(ctf_id, "compromisedChart", date);
+    resetChart("generalChart");
+    generate_global_graph(ctf_id, "generalChart");
 }
 
 /* -------------- CTF details -------------- */
@@ -55,23 +57,23 @@ async function fetchCtfDetails(ctfId) {
     const baseUrl = '/api/ctfs/'; // Replace with your actual base URL
     try {
         const response = await fetch(baseUrl + ctfId);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const ctf = await response.json();
-                    storeCtfDetails(ctf);
-            displayCtfDetails(ctf);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const ctf = await response.json();
+        storeCtfDetails(ctf);
+        displayCtfDetails(ctf);
         listDates();
     } catch (error) {
-            console.error('Fetching CTF details failed:', error);
-            document.getElementById('ctfDetails').textContent = 'Failed to load CTF details.';
-        }
+        console.error('Fetching CTF details failed:', error);
+        document.getElementById('ctfDetails').textContent = 'Failed to load CTF details.';
+    }
 }
 
 function convertToYYYYMMDD(sqlDateStr) {
     let DateStr = sqlDateStr.split('T')[0];
     DateStr = DateStr.replace(/-/g, '');
-    return Number(DateStr);    
+    return Number(DateStr);
 }
 
 function storeCtfDetails(ctf) {
@@ -154,18 +156,20 @@ function listDates() {
 
 function createDateDropdown(dates) {
     const container = document.getElementById('date-dropdown-container');
-if (container.querySelector('#date-select')) {
+    if (container.querySelector('#date-select')) {
         container.removeChild(container.querySelector('#date-select'));
     }
 
     const select = document.createElement('select');
     select.name = 'date';
     select.id = 'date-select';
+    let i = 1;
 
     dates.forEach(date => {
         const option = document.createElement('option');
         option.value = date;
-        option.textContent = date;
+        option.textContent = "Jour " + i;
+        i++;
         select.appendChild(option);
     });
 
@@ -235,22 +239,64 @@ function generate_labels() {
     return array;
 }
 
+function generate_global_labels() {
+    let minValue = 8;
+    let maxValue = 17;
+    if (localStorage.getItem('ctf_start_hour') && localStorage.getItem('ctf_start_hour' != "null")) {
+        minValue = Number(localStorage.getItem('ctf_start_hour'));
+    }
+    if (localStorage.getItem('ctf_end_hour') && localStorage.getItem('ctf_end_hour') != "null") {
+        maxValue = Number(localStorage.getItem('ctf_end_hour'));
+    }
+    let hour_per_day = maxValue - minValue + 1;
+    let nb_days = Number(localStorage.getItem('ctf_end_date')) - Number(localStorage.getItem('ctf_start_date')) + 1;
+    let nb_hours = hour_per_day * nb_days;
+    let array = [];
+    for (let i = 0; i <= nb_hours; i++) {
+        array.push(i.toString());
+    }
+    return array;
+}
 
-
-async function getPwnedWithPreviousDay(userList, parameters) {
-    
+/**
+ * Calculates the time difference in hours between the CTF data and a pwn time.
+ * 
+ * 
+ * @param {number} start_date - The CTF start date.
+ * @param {number} start_hour - The CTF start hour.
+ * @param {number} pwn_date - The pwn date.
+ * @param {number} pwn_hour - The CTF end hour.
+ * @param {number} time_slot - The time slot in hours.
+ * @returns {number} - The calculated hour of the pwn from the start of the CTF.
+ */
+function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, time_slot) {
+    let nb_days = pwn_date - start_date + 1;
+    let today_hour = pwn_hour - start_hour + 1;
+    let nb_hours = nb_days * time_slot + today_hour - start_hour;
+    return nb_hours
 }
 
 
-async function getPwnedWithoutPreviousDay(userList, parameters) {
+async function getGlobalData(ctfs_id, userList) {
+    const previousPoint = document.getElementById('previousPoint').checked;
+    let parameters = "?ctf_id=" + ctfs_id;
     try {
         const response = await fetch('/api/data' + parameters);
         const data = await response.json();
 
-        // First, group data by user
+        // Get CTF data
+        let start_date = Number(localStorage.getItem('ctf_start_date'));
+        let start_hour = Number(localStorage.getItem('ctf_start_hour'));
+        let end_hour = Number(localStorage.getItem('ctf_end_hour'));
+        let time_slot = end_hour - start_hour;
+
+        // Group data by user
         userList = data.reduce((acc, entry) => {
-            // Extract just the hour part from the current 'compromise_time' of the entry
-            const hour = entry.compromise_time.split('T')[1].split(':')[0];
+            let hour = entry.compromise_time.split('T')[1].split(':')[0];
+            let dateD = entry.compromise_time.split('T')[0];
+            dateD = dateD.replace(/-/g, '');
+            const dateInt = convertToYYYYMMDD(dateD);
+            hour = calculateTimeDifference(start_date, start_hour, dateInt, hour, time_slot)
             if (!acc[entry.username]) {
                 acc[entry.username] = {};
             }
@@ -260,18 +306,15 @@ async function getPwnedWithoutPreviousDay(userList, parameters) {
             acc[entry.username][hour]++;
             return acc;
         }, userList);
-
         return userList;
-    }
-    catch (error) {
+    } catch (error) {
         console.log("Error fetching pwned data: ", error);
     }
 }
 
-async function getData(ctfs_id, userList, date=null) {
+async function getData(ctfs_id, userList, date = null) {
     const previousPoint = document.getElementById('previousPoint').checked;
     let parameters = "";
-    console.log("userList1: ", userList);
 
     if (date && !previousPoint) {
         parameters = "?ctf_id=" + ctfs_id + "&date=" + date;
@@ -290,8 +333,7 @@ async function getData(ctfs_id, userList, date=null) {
             const hour = entry.compromise_time.split('T')[1].split(':')[0];
             let dateD = entry.compromise_time.split('T')[0];
             dateD = dateD.replace(/-/g, '');
-            const dateInt = convertToYYYYMMDD(dateD); 
-            console.log("selectedDate: ", selectedDate)
+            const dateInt = convertToYYYYMMDD(dateD);
             if (dateInt == selectedDate) {
                 if (!acc[entry.username]) {
                     acc[entry.username] = {};
@@ -301,8 +343,6 @@ async function getData(ctfs_id, userList, date=null) {
                 }
                 acc[entry.username][hour]++;
             } else if (dateInt < selectedDate && previousPoint) {
-                console.log("******************")
-                console.log( "dateInt2: ", acc[entry.username])
                 if (!acc[entry.username]) {
                     acc[entry.username] = {};
                 }
@@ -310,17 +350,13 @@ async function getData(ctfs_id, userList, date=null) {
                     acc[entry.username][0] = 0;
                 }
                 acc[entry.username][0]++;
-            }   
+            }
             return acc;
         }, userList);
-        console.log("userList: ", userList);
         return userList;
     } catch (error) {
         console.log("Error fetching pwned data: ", error);
     }
-
-    
-
 }
 
 async function listUsers(ctfs_id) {
@@ -343,48 +379,20 @@ async function listUsers(ctfs_id) {
 }
 
 
-function generate_graph(ctfs_id, date = null) {
+function generate_daily_graph(ctfs_id, chartId, date = null) {
     listUsers(ctfs_id).then(userList => {
         getData(ctfs_id, userList, date).then(usersData => {
-
-            // fetch('/data?ctf_id='+ctfs_id)
-            //     .then(response => response.json())
-            //         .then(data => {
-            //             // First, group data by user
-            //             let usersData = data.reduce((acc, entry) => {
-            //             // Extract just the hour part from the current 'compromise_time' of the entry
-            //             const hour = entry.compromise_time.split('T')[1].split(':')[0];
-
-            //             if (!acc[entry.username]) {
-            //                 acc[entry.username] = {};
-            //             }
-            //             if (!acc[entry.username][hour]) {
-            //                 acc[entry.username][hour] = 0;
-            //             }
-            //             acc[entry.username][hour]++;
-            //             return acc;
-            //         }, {});
-
-
-
-
-            // Get unique dates to use as labels
-            // const labels = Array.from(new Set(data.map(entry => entry.compromise_time.split('T')[0]))).sort();
-            // const labels = Array.from(new Set(data.map(entry => {return entry.compromise_time.split('T')[1].split(':')[0];}))).sort();
             const labels = generate_labels();
-
             // Create datasets for each user
             const datasets = Object.keys(usersData).map(username => {
                 // For each label (date), get the value or fallback to 0 if no compromises happened on that date
                 let sum = parseInt(usersData[username][0] || 0);
-
-
                 const data = labels.map(label => {
                     sum += parseInt(usersData[username][label] || 0)
                     return sum.toString();
                     // usersData[username][label] || 0
                 });
-                                return {
+                return {
                     label: username,
                     data: data,
                     fill: false,
@@ -392,28 +400,73 @@ function generate_graph(ctfs_id, date = null) {
                     borderWidth: 2
                 };
             });
-            return renderChart(labels, datasets);
+            return renderChart(labels, chartId, datasets);
+        });
+    });
+}
+
+function generate_global_graph(ctfs_id, chartId) {
+    listUsers(ctfs_id).then(userList => {
+        getGlobalData(ctfs_id, userList).then(usersData => {
+            const labels = generate_global_labels();
+            // Create datasets for each user
+            const datasets = Object.keys(usersData).map(username => {
+                // For each label (date), get the value or fallback to 0 if no compromises happened on that date
+                let sum = parseInt(usersData[username][0] || 0);
+                const data = labels.map(label => {
+                    sum += parseInt(usersData[username][label] || 0)
+                    return sum.toString();
+                    // usersData[username][label] || 0
+                });
+                return {
+                    label: username,
+                    data: data,
+                    fill: false,
+                    borderColor: getRandomColor(), // Function to get a random color for the line
+                    borderWidth: 2
+                };
+            });
+            return renderChart(labels, chartId, datasets);
         });
     });
 }
 
 
-function resetChart() {
-    var chart = document.getElementById('compromisedChart');
+function resetChart(chartId) {
+    var chart = document.getElementById(chartId);
     chart.parentElement.removeChild(chart);
 
     var canv = document.createElement('canvas');
-    canv.id = 'compromisedChart';
-    document.body.appendChild(canv);
+    canv.id = chartId;
+
+    var div = document.getElementById("div-"+chartId);
+    div.appendChild(canv);
+
+    // document.body.appendChild(canv);
 }
 
-function renderChart(labels, datasets) {
-    let labels_array = generate_labels();
-    const ctx = document.getElementById('compromisedChart').getContext('2d');
+function getMaxFromDataset(datasets) {
+    let max = 0;
+    datasets.forEach(dataset => {
+        dataset.data.forEach(data => {
+            if (data > max) {
+                max = data;
+            }
+        });
+    });
+    return max;
+}
+
+function getMaxY(max){
+    return Number(max) + 5;
+}
+
+function renderChart(labels, chartId, datasets) {
+    const ctx = document.getElementById(chartId).getContext('2d');
     const myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels_array,
+            labels: labels,
             datasets: datasets
         },
         options: {
@@ -421,7 +474,7 @@ function renderChart(labels, datasets) {
                 y: {
                     beginAtZero: true,
                     min: 0,
-                    max: 10
+                    max: getMaxY(getMaxFromDataset(datasets)),
                 },
                 x: {
 
@@ -431,7 +484,7 @@ function renderChart(labels, datasets) {
                     }
                 }
             },
-            // responsive: true,
+            responsive: true,
             // maintainAspectRatio: false
         }
     });

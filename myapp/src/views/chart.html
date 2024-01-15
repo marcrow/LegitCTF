@@ -9,14 +9,25 @@
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     </head>
 <body>
+    <h1>ESGI Pentest Dashboard</h1>
     <div id="ctf-dropdown-container"></div>
-    <div id="date-dropdown-container"></div>
     <div id="ctfDetails">Loading CTF details...</div>
     <!-- <script type="text/javascript"src="/public/ctfinfo.js"></script> -->
-    <h1>Compromised Machines Over Time</h1>
-    <input type="checkbox" id="previousPoint"><label>Afficher les points précédents.</label></input>
-    <canvas id="compromisedChart" width="800" height="400"></canvas>
-
+    <div class="dailyView">
+        <h2>Vue Journalière</h2>
+        <h3>Paramètres</h3>
+        <div id="date-dropdown-container"></div>
+        <input type="checkbox" id="previousPoint"><label>Afficher les points précédents.</label></input>
+        <div id="div-compromisedChart">
+            <canvas id="compromisedChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+    <div class="globalView">
+        <h2>Vue globale</h2>
+        <div id="div-generalChart">
+            <canvas id="generalChart" width="800" height="400"></canvas>
+        </div>
+    </div>
     <script src="/ctfInfo.js"></script>
     
 </body>
