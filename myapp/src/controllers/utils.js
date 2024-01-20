@@ -11,6 +11,15 @@ function convertToYYYYMMDD(sqlDateStr) {
     return sqlDateStr.replace(/-/g, '');
 }
 
+function getClientIPv4(req) {
+    const ip = req.socket.remoteAddress;
+    if (ip.substr(0, 7) == "::ffff:") {
+        return ip.substr(7)
+    }
+    return ip;
+}
+
 module.exports = {
-    convertToDateSQL, convertToYYYYMMDD
+    convertToDateSQL, convertToYYYYMMDD, getClientIPv4
 };
+

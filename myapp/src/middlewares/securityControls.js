@@ -1,3 +1,7 @@
+const dbService = require('../services/dbService'); // Adjust the path as necessary
+const utils = require('../controllers/utils');
+const cookie = require('cookie');
+
 function validateInteger(paramName) {
     return function(req, res, next) {
         const paramValue = parseInt(req.params[paramName]);
@@ -27,8 +31,48 @@ function validateArgs(req, res, next) {
         if (err) {
             return next(err);
         }
-        validateQuery(req, res, next);
+        validateQuery(req, res, function(err) {
+            if (err) {
+                return next(err);
+            }
+            validateBody(req, res, next);
+        });
     });
+}
+
+function validateBody(req, res, next) {
+    if (req.method === 'POST' || req.method === 'DELETE') {
+        console.log("req.body: ", req.body)
+        const bodyParams = Object.keys(req.body);
+        for (const param of bodyParams) {
+            let result;
+            if (param === 'ctf_id'){
+                result = validate_ctf_id(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }
+            }
+            if (param === 'date'){
+                result = validate_date(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
+            if(param === 'instance_id'){
+                result = validate_VmInstance(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
+            if(param === 'ip'){
+                result = validateIp(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid ip parameter: ${param}`);
+                }   
+            }
+        }
+    }
+    next();
 }
 
 function validateQuery(req, res, next) {
@@ -86,8 +130,90 @@ function validate_date(date){
     return date;
 }
 
+function validate_VmInstance(vmInstance){
+    vmInstance = parseInt(vmInstance);
+    if (!Number.isInteger(vmInstance) || vmInstance < 0) {
+        return -1;
+    }   
+    return vmInstance;
+}
+
+function validateIp(ip){
+    var ipaddr = require('ipaddr.js');
+    if (ipaddr.isValid(ip)) {
+        return true;
+    }
+    return false;
+}
+
+
+const ip_req = require('ip');
+function checkIfIpIsAllowed(ipAddress, subnet){
+        // Utilisez la fonction `ip.cidrSubnet()` pour créer un objet de sous-réseau à partir de la notation CIDR
+    const subnetObject = ip_req.cidrSubnet(subnet);
+    min_address = Number(subnetObject.firstAddress.replace(/\./g, ''));
+    max_address = Number(subnetObject.lastAddress.replace(/\./g, ''));
+    ipAddress = Number(ipAddress.replace(/\./g, ''));
+    return ipAddress >= min_address && ipAddress <= max_address;    
+}
+
+
+
+
+
+function machineAccess(req, res, next) {
+    var machinesNetwork = process.env.MACHINE_NETWORK;
+    var ipnumber = utils.getClientIPv4(req);
+    if (checkIfIpIsAllowed(ipnumber, machinesNetwork))
+    {
+        next();
+    }
+    else
+    {
+        console.log("Forbidden access from " + ipnumber);
+        res.status(403).send('Forbidden');
+    }
+}
+
+
+//----------------VM Controlls----------------
+
+function checkVMCookie (req, res, next) {
+    const instance_id = req.body.instance_id
+    if (!instance_id) {
+        return res.status(401).send('No instance id found');
+    }
+    const cookies = cookie.parse(req.headers.cookie || '');
+    console.log("cookies: ", cookies);
+    const cookieValue = cookies.Cookie_machine;
+    if (!cookieValue) {
+        return res.status(401).send('No cookie found');
+    }
+    if(cookieValue.length != 64){
+        return res.status(401).send('Invalid cookie');
+    }
+    dbService.getCookie(instance_id).then(function(result){
+        if(result.length == 0){
+            console.log("len 0");
+            return res.status(401).send('Invalid cookie');
+        }
+        data = result[0];
+        if(data.cookie != cookieValue){
+            return res.status(401).send('Invalid cookie');
+        }
+        if(utils.getClientIPv4(req) != data.ip){
+            return res.status(401).send('Invalid Instance');
+        }
+    });
+    next();
+};
+
+
+
 module.exports = {
     validateInteger, 
     validateQueryInteger,
-    validateArgs 
+    validateArgs,
+    machineAccess,
+    checkVMCookie 
 };

@@ -8,7 +8,7 @@ USE esgi_db;
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL UNIQUE
     -- Add other user details here
 );
 
@@ -41,11 +41,21 @@ CREATE TABLE IF NOT EXISTS ctfs_machines (
     machine_name VARCHAR(100) NOT NULL,
     nb_point INT,
     difficulty VARCHAR(30) NOT NULL,
-    current_key VARCHAR(30) NOT NULL,
-    old_key VARCHAR(30) NOT NULL,
-    IP VARCHAR(15),  -- Added IP column to store IP address of the machine
+    default_password VARCHAR(255),
     PRIMARY KEY (machine_name, ctf_id),
     FOREIGN KEY (ctf_id) REFERENCES ctfs(ctf_id)
+);
+
+-- VM Instances of CTFs_Machines - Table
+CREATE TABLE IF NOT EXISTS ctf_vm_instance (
+    instance_id INT AUTO_INCREMENT PRIMARY KEY,
+    ctf_id INT,
+    machine_name VARCHAR(100) NOT NULL,
+    ip VARCHAR(15) NOT NULL,
+    is_running BOOLEAN NOT NULL DEFAULT FALSE,
+    cookie VARCHAR(255), -- if null instance is not already authenticated
+    FOREIGN KEY (ctf_id) REFERENCES ctfs(ctf_id),
+    FOREIGN KEY (machine_name) REFERENCES ctfs_machines(machine_name)
 );
 
 -- Compromised_Machines Table
@@ -64,13 +74,13 @@ CREATE TABLE IF NOT EXISTS pwned (
     Inserting some dummy data for testing
 */      
 INSERT INTO users (username, password) VALUES ('prof', 'ThisIsATestUser');
-INSERT INTO users (username, password) VALUES ('prof1', 'ThisIsATestUser');
-INSERT INTO users (username, password) VALUES ('prof2', 'ThisIsATestUser');
+INSERT INTO users (username, password) VALUES ('prof1', 'ThisIsATestUser1');
+INSERT INTO users (username, password) VALUES ('prof2', 'ThisIsATestUser3');
 
 INSERT INTO ctfs (ctf_name, start_date, end_date, start_hour, end_hour)
-VALUES ('Awesome CTF Challenge', '2024-01-10', '2024-01-12',8,18);
+VALUES ('Awesome CTF Challenge', '2024-01-19', '2024-01-21',8,18);
 INSERT INTO ctfs (ctf_name, start_date, end_date, start_hour, end_hour)
-VALUES ('Awesome CTF Challenge 2', '2024-01-10', '2024-01-11',9,17);
+VALUES ('Esgi ctf', '2024-01-10', '2024-01-11',9,17);
 
 
 INSERT INTO users_ctfs (user_id, ctf_id, attempt)
@@ -79,26 +89,30 @@ INSERT INTO users_ctfs (user_id, ctf_id, attempt)
 VALUES (2, 1, 1); 
 INSERT INTO users_ctfs (user_id, ctf_id, attempt)
 VALUES (3, 1, 1); 
-
-INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, current_key, old_key)
-VALUES (1, 'MachineAlpha', 50, 'Hard', 'key123', 'oldkey321');
-
-INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
-VALUES (1, 'MachineAlpha', 1, '2024-01-11 14:35:00'); 
-INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
-VALUES (1, 'MachineAlpha', 2, '2024-01-11 16:37:00'); 
-
-
 INSERT INTO users_ctfs (user_id, ctf_id, attempt)
 VALUES (1, 2, 1); 
 INSERT INTO users_ctfs (user_id, ctf_id, attempt)
 VALUES (2, 2, 1); 
 
+INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
+VALUES (1,'MachineAlpha', 50, 'Hard', "superPassword");
+INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
+VALUES (1,'Rabbit', 50, 'Hard', 'AnotherPassword');
 
-INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, current_key, old_key)
-VALUES (2, 'MachineAlpha', 50, 'Hard', 'key123', 'oldkey321');
-INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, current_key, old_key)
-VALUES (2, 'Rabbit', 50, 'Hard', 'key123', 'oldkey321');
+INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
+VALUES (2,'MachineAlpha', 50, 'Hard', "superPassword");
+INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
+VALUES (2,'Rabbit', 50, 'Hard', 'AnotherPassword');
+
+-- INSERT INTO ctf_vm_instance (ctf_id, machine_name, ip)
+-- VALUES (1, 'MachineAlpha', '127.0.0.1');
+
+-- INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
+-- VALUES (1, 'MachineAlpha', 1, '2024-01-11 14:35:00'); 
+-- INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
+-- VALUES (1, 'MachineAlpha', 2, '2024-01-11 16:37:00'); 
+
+
 
 INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
 VALUES (2, 'MachineAlpha', 1, '2024-01-11 14:35:00'); 
@@ -106,3 +120,4 @@ INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
 VALUES (2, 'MachineAlpha', 2, '2024-01-11 16:37:00'); 
 INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
 VALUES (2, 'Rabbit', 2, '2024-01-11 17:37:00'); 
+

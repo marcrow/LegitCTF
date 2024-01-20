@@ -44,12 +44,13 @@ router.get('/data', validateArgs, async (req, res) => {
     if(!req.query.date){
         //getLastpawn
         let pwnDate = await dbService.getLastPwn(ctfId);
-        if( pwnDate && pwnDate != null){
+        if( pwnDate && pwnDate != null && pwnDate.latestCompromiseTime != null){
             pwn_date = pwnDate.latestCompromiseTime.toISOString().split("T")[0];
         }
         else{
             const ctf_data = await dbService.getCtfById(ctfId);
-            pwn_date = ctf_data.start_date.split("T")[0]
+            pwn_date = ctf_data.start_date.toISOString().split("T")[0]
+            console.log("pwn_date: ", pwn_date);
         }
     }
     else{

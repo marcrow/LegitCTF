@@ -1,0 +1,8 @@
+
+DROP TABLE IF EXISTS users_ctfs;
+DROP TABLE IF EXISTS ctf_vm_instance;
+DROP TABLE IF EXISTS pwned;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS ctfs_machines;
+DROP TABLE IF EXISTS ctfs;
+

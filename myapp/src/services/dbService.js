@@ -218,4 +218,217 @@ async function getCtfById(ctfId) {
 }
 
 
-module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn };
+
+//------------------ VMInstance ------------------//
+async function getInstanceId(ctf_id, machine_name, ip) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                instance_id
+            FROM 
+            ctf_vm_instance
+            WHERE 
+                ctf_id = ? AND machine_name = ? AND IP = ?;
+        `;
+        const rows = await conn.query(query, [ctf_id, machine_name, ip]);
+        return rows;
+    } catch (err) {
+        console.error('Error in getInstanceId:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function instanceExist(ctf_id, machine_name, ip) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                COUNT *
+            FROM 
+                ctf_vm_instance
+            WHERE 
+                ctf_id = ? AND machine_name = ? AND IP = ?;
+        `;
+        const rows = await conn.query(query, [ctf_id, machine_name, ip]);
+        return Number(rows);
+    } catch (err) {
+        console.error('Error in instanceExist:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function getDefaultPassword(ctf_id, machine_name) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+        SELECT 
+            default_password
+        FROM
+            ctfs_machines
+        WHERE
+            ctf_id = ? AND machine_name = ?;
+        `;
+        const [rows] = await conn.query(query, [ctf_id, machine_name]);
+        console.log("rows: ", rows);
+        return rows;
+    } catch (err) {
+        console.error('Error in getDefaultPassword:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function createInstance(ctf_id, machine_name, ip, cookie) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            INSERT INTO 
+                ctf_vm_instance (ctf_id, machine_name, IP, is_running, cookie)
+            VALUES 
+                (?, ?, ?, True, ?);
+        `;
+        const rows = await conn.query(query, [ctf_id, machine_name, ip, cookie]);
+        return await getInstanceId(ctf_id, machine_name, ip);
+    } catch (err) {
+        console.error('Error in createInstance:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+async function addVmInstanceCookie(instanceId , cookieValue) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            UPDATE 
+                ctf_vm_instance
+            SET
+                cookie = ?
+            WHERE 
+                instance_id = ?;
+        `;
+        const rows = await conn.query(query, [instanceId, cookieValue]);
+        return rows;
+    } catch (err) {
+        console.error('Error in addVmInstanceCookie:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function getCookie(instanceId) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                *
+            FROM 
+                ctf_vm_instance
+            WHERE 
+                instance_id = ?;
+        `;
+        const rows = await conn.query(query, [instanceId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in verifyCookie:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function updateCookie(instanceId, cookieValue) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            UPDATE 
+                ctf_vm_instance
+            SET
+                cookie = ?
+            WHERE 
+                instance_id = ?;
+        `;
+        const rows = await conn.query(query, [cookieValue, instanceId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in updateCookie:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function checkUserPassword(password) {
+    let conn;
+    console.log(password)
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                *
+            FROM 
+                users
+            WHERE 
+                password = ?;
+        `;
+        const [rows] = await conn.query(query, [password]);
+        return rows;
+    } catch (err) {
+        console.error('Error in checkUserPassword:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function pwn(ctf_id, ctf_machine_name, user_id) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            INSERT INTO 
+                pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
+            VALUES 
+                (?, ?, ?, NOW());
+        `;
+        const rows = await conn.query(query, [ctf_id, ctf_machine_name, user_id]);
+        return rows;
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            throw new Error('Duplicate entry');
+        } else {
+            console.error('Error in pwn:', err);
+            throw err;
+        }
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie };
