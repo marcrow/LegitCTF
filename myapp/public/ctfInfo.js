@@ -188,7 +188,7 @@ function createDateDropdown(dates) {
             select.value = dateParam;
         }
     } else {
-        // Retrieve the current client date
+        // Retrieve t he current client date
         const currentDate = new Date().toISOString().split('T')[0];
         // Verify if the value is in the dropdown and select it
         const option = select.querySelector(`option[value="${currentDate}"]`);
@@ -226,10 +226,10 @@ function retrieveCtfIdFromDropdown() {
 function generate_labels() {
     let minValue = 8;
     let maxValue = 17;
-    if (localStorage.getItem('ctf_start_hour') && localStorage.getItem('ctf_start_hour' != "null")) {
+    if (localStorage.getItem('ctf_start_hour')) {
         minValue = Number(localStorage.getItem('ctf_start_hour'));
     }
-    if (localStorage.getItem('ctf_end_hour') && localStorage.getItem('ctf_end_hour') != "null") {
+    if (localStorage.getItem('ctf_end_hour')) {
         maxValue = Number(localStorage.getItem('ctf_end_hour'));
     }
     let array = [];
@@ -242,10 +242,10 @@ function generate_labels() {
 function generate_global_labels() {
     let minValue = 8;
     let maxValue = 17;
-    if (localStorage.getItem('ctf_start_hour') && localStorage.getItem('ctf_start_hour' != "null")) {
+    if (localStorage.getItem('ctf_start_hour')) {
         minValue = Number(localStorage.getItem('ctf_start_hour'));
     }
-    if (localStorage.getItem('ctf_end_hour') && localStorage.getItem('ctf_end_hour') != "null") {
+    if (localStorage.getItem('ctf_end_hour')) {
         maxValue = Number(localStorage.getItem('ctf_end_hour'));
     }
     let hour_per_day = maxValue - minValue + 1;
@@ -269,10 +269,11 @@ function generate_global_labels() {
  * @param {number} time_slot - The time slot in hours.
  * @returns {number} - The calculated hour of the pwn from the start of the CTF.
  */
-function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, time_slot) {
-    let nb_days = pwn_date - start_date + 1;
+function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end_hour) {
+    let nb_days = pwn_date - start_date;
     let today_hour = pwn_hour - start_hour + 1;
-    let nb_hours = nb_days * time_slot + today_hour - start_hour;
+    let time_slot = end_hour - start_hour + 1;
+    let nb_hours = nb_days * time_slot + today_hour;
     return nb_hours
 }
 
@@ -288,7 +289,6 @@ async function getGlobalData(ctfs_id, userList) {
         let start_date = Number(localStorage.getItem('ctf_start_date'));
         let start_hour = Number(localStorage.getItem('ctf_start_hour'));
         let end_hour = Number(localStorage.getItem('ctf_end_hour'));
-        let time_slot = end_hour - start_hour;
 
         // Group data by user
         userList = data.reduce((acc, entry) => {
@@ -296,7 +296,8 @@ async function getGlobalData(ctfs_id, userList) {
             let dateD = entry.compromise_time.split('T')[0];
             dateD = dateD.replace(/-/g, '');
             const dateInt = convertToYYYYMMDD(dateD);
-            hour = calculateTimeDifference(start_date, start_hour, dateInt, hour, time_slot)
+            hour = calculateTimeDifference(start_date, start_hour, dateInt, hour, end_hour)
+            console.log(hour)
             if (!acc[entry.username]) {
                 acc[entry.username] = {};
             }
