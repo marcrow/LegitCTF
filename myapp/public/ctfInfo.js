@@ -1,6 +1,7 @@
 /* -------------- Listeners -------------- */
 
 
+
 document.addEventListener('DOMContentLoaded', async function () {
     await listCtf();
     ctfId = retrieveCtfIdFromDropdown();
@@ -223,6 +224,9 @@ function retrieveCtfIdFromDropdown() {
 
 // ------------ generate graph ---------
 
+let global_chart;
+let daily_chart;
+
 function generate_labels() {
     let minValue = 8;
     let maxValue = 17;
@@ -401,7 +405,9 @@ function generate_daily_graph(ctfs_id, chartId, date = null) {
                     borderWidth: 2
                 };
             });
-            return renderChart(labels, chartId, datasets);
+            daily_chart = renderChart(labels, chartId, datasets);
+            window.daily_chart = daily_chart;
+            return daily_chart;
         });
     });
 }
@@ -427,7 +433,9 @@ function generate_global_graph(ctfs_id, chartId) {
                     borderWidth: 2
                 };
             });
-            return renderChart(labels, chartId, datasets);
+            global_chart = renderChart(labels, chartId, datasets);
+            window.global_chart = global_chart;
+            return global_chart;
         });
     });
 }
@@ -463,6 +471,7 @@ function getMaxY(max){
 }
 
 function renderChart(labels, chartId, datasets) {
+    lineColor = localStorage.getItem('color_line');
     const ctx = document.getElementById(chartId).getContext('2d');
     const myChart = new Chart(ctx, {
         type: 'line',
@@ -476,18 +485,41 @@ function renderChart(labels, chartId, datasets) {
                     beginAtZero: true,
                     min: 0,
                     max: getMaxY(getMaxFromDataset(datasets)),
+                    title: {
+                        display: true,
+                        text: 'Machines compromises'
+                    },
+                    grid: {
+                        color: lineColor
+                    },
+                    ticks: {
+                        color: lineColor,
+                        font: {
+                            size: 20,
+                        }
+                    }
                 },
                 x: {
 
                     title: {
                         display: true,
-                        text: 'Hour'
+                        text: 'Heures'
+                    },
+                    grid: {
+                        color: lineColor
+                    },
+                    ticks: {
+                        color: lineColor,
+                        font: {
+                            size: 20,
+                        },
                     }
                 }
             },
             responsive: true,
             // maintainAspectRatio: false
-        }
+        },
+
     });
     return myChart
 }

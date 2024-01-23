@@ -1,9 +1,24 @@
+body {
+    --main-color: #ffffff;
+    --text-color: #1b3c70;
+    --secundary-color: #0f6292;
+    background-color: var(--main-color);
+    color: var(--text-color);
+}
+
+
+.dark-mode {
+    --main-color: #232b38;
+    --text-color: #16ff00;
+    --secundary-color: #FFED00;
+}
+
 /* Styles généraux */
 body,
 html {
-    background-color: #000000;
+    background-color: var(--main-color);
     /* Fond noir */
-    color: #16ff00;
+    color: var(--text-color);
     /* Texte bleu */
     font-family: 'Courier New', Courier, monospace;
     /* Police style terminal */
@@ -33,7 +48,7 @@ nav li {
 }
 
 nav li a {
-    color: #16ff00;
+    color: var(--text-color);
     text-decoration: none;
     font-weight: bold;
     font-size: 20px;
@@ -44,25 +59,25 @@ nav li a:hover {
 }
 
 nav li a:active {
-    border-bottom: 1px solid #16ff00;
+    border-bottom: 1px solid var(--text-color);
 }
 
 p {
-    color: #FFED00;
+    color: var(--secundary-color);
     font-size: 1em;
 
 }
 
 /* Styles du main */
 h1 {
-    color: #16ff00;
+    color: var(--text-color);
     font-size: 3rem;
     text-align: center;
     margin-top: 2rem;
 }
 
 h2 {
-    color: #16ff00;
+    color: var(--text-color);
     font-size: 2rem;
     margin-top: 2rem;
 }
@@ -85,7 +100,7 @@ button {
 } */
 
 .current{
-    border-bottom: solid #16ff00;
+    border-bottom: solid var(--text-color);
 }
 
 .intro{
