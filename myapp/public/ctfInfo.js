@@ -274,6 +274,14 @@ function generate_global_labels() {
  * @returns {number} - The calculated hour of the pwn from the start of the CTF.
  */
 function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end_hour) {
+    console.log("start_date", start_date)
+    console.log("start_hour", start_hour)
+    console.log("pwn_date", pwn_date)   
+    console.log("pwn_hour", pwn_hour)
+    console.log("end_hour", end_hour)
+    if (pwn_hour < start_hour || pwn_hour > end_hour || pwn_date < start_date || pwn_date > Number(localStorage.getItem('ctf_end_date'))) {
+        return -1;
+    }
     let nb_days = pwn_date - start_date;
     let today_hour = pwn_hour - start_hour + 1;
     let time_slot = end_hour - start_hour + 1;
@@ -285,6 +293,7 @@ function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end
 async function getGlobalData(ctfs_id, userList) {
     const previousPoint = document.getElementById('previousPoint').checked;
     let parameters = "?ctf_id=" + ctfs_id;
+    console.log("init userList", userList)
     try {
         const response = await fetch('/api/data' + parameters);
         const data = await response.json();
@@ -296,11 +305,14 @@ async function getGlobalData(ctfs_id, userList) {
 
         // Group data by user
         userList = data.reduce((acc, entry) => {
-            let hour = entry.compromise_time.split('T')[1].split(':')[0];
+            let pwnHour = entry.compromise_time.split('T')[1].split(':')[0];
             let dateD = entry.compromise_time.split('T')[0];
             dateD = dateD.replace(/-/g, '');
-            const dateInt = convertToYYYYMMDD(dateD);
-            hour = calculateTimeDifference(start_date, start_hour, dateInt, hour, end_hour)
+            const formatedDate = convertToYYYYMMDD(dateD);
+            let hour = calculateTimeDifference(start_date, start_hour, formatedDate, pwnHour, end_hour)
+            if (hour == -1) {
+                return acc;
+            }
             console.log(hour)
             if (!acc[entry.username]) {
                 acc[entry.username] = {};
@@ -311,6 +323,7 @@ async function getGlobalData(ctfs_id, userList) {
             acc[entry.username][hour]++;
             return acc;
         }, userList);
+        console.log("userList", userList)
         return userList;
     } catch (error) {
         console.log("Error fetching pwned data: ", error);
@@ -358,6 +371,7 @@ async function getData(ctfs_id, userList, date = null) {
             }
             return acc;
         }, userList);
+        console.log("daily userList", userList)
         return userList;
     } catch (error) {
         console.log("Error fetching pwned data: ", error);
@@ -433,6 +447,7 @@ function generate_global_graph(ctfs_id, chartId) {
                     borderWidth: 2
                 };
             });
+            console.log("datasets", datasets)
             global_chart = renderChart(labels, chartId, datasets);
             window.global_chart = global_chart;
             return global_chart;

@@ -2,6 +2,8 @@
 require('dotenv').config();
 const express = require('express');
 const mariadb = require('mariadb');
+const https = require('https');
+const fs = require('fs');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,6 +18,11 @@ const session = require('express-session');
 app.use(express.static('public')); // Serve static files from the public directory
 
 app.use(express.json());
+
+const privateKey = fs.readFileSync('config/key.pem', 'utf8');
+const certificate = fs.readFileSync('config/cert.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
 
 app.get('/', async (req, res) => {
     try {
@@ -58,7 +65,8 @@ app.get('/data', validateArgs, async (req, res) => {
     }
 });
 
+const httpsServer = https.createServer(credentials, app);
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+httpsServer.listen(port, () => {
+  console.log('Serveur HTTPS lancé sur le port 443');
 });

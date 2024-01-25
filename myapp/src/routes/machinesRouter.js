@@ -5,7 +5,24 @@ const { validateArgs } = require('../middlewares/securityControls');
 const { checkVMCookie } = require('../middlewares/securityControls');
 const { createCookie } = require('../controllers/vmCookie');
 const utils = require('../controllers/utils');
+const {connections} = require('../middlewares/sse');
 
+function sendEventsToAll(data) {
+    console.log("coucou")
+    console.log("user connected: ", connections.length)
+    connections.forEach((res) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    });
+}
+
+router.get('/test', async (req, res) => {
+    try {
+        res.send('OK');
+        sendEventsToAll("coucou");
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 router.post('/firstAuth/', validateArgs, async (req, res) => {
     try {
@@ -28,6 +45,7 @@ router.post('/firstAuth/', validateArgs, async (req, res) => {
         const new_cookie = createCookie();
         const result = await dbService.createInstance(ctf_id, machine_name, ip, new_cookie);
         const instance = result[0].instance_id;
+        sendEventsToAll("new instance of " + machine_name + " created at " + ip);
         res.status(200).json({ instance, new_cookie });
     } catch (error) {
         res.status(500).send(error.message);

@@ -19,7 +19,7 @@ fi
 # Function to retrieve parameters from flag.conf file
 retrieve_parameters() {
     if [[ -f "$config_file" ]]; then
-        dest_ip=$(grep "DEST_IP" "$config_file" | cut -d "=" -f 2)
+        ctf_server=$(grep "CTF_SERVER" "$config_file" | cut -d "=" -f 2)
         default_password=$(grep "DEFAULT_PASSWORD" "$config_file" | cut -d "=" -f 2)
         machine_name=$(grep "MACHINE_NAME" "$config_file" | cut -d "=" -f 2)
         ctf_id=$(grep "CTF_ID" "$config_file" | cut -d "=" -f 2)
@@ -78,6 +78,7 @@ extract_cookie(){
     save_cookie "$cookie"
 }
 
+
 # Function to perform initial authentication
 first_auth() {
     # Add your code here
@@ -87,7 +88,7 @@ first_auth() {
         echo "Error: Default password cannot be empty!"
         exit 5
     fi
-    result=$(curl -s --location 'http://127.0.0.1:3000/machines/firstAuth' \
+    result=$(curl -s --cacert ./cert.pem   --location "$ctf_server/machines/firstAuth" \
     --header 'Content-Type: application/json' \
     --data '{
         "ctf_id": "'"$ctf_id"'",
@@ -103,6 +104,8 @@ first_auth() {
     fi
     if [[ $status -ne 0 ]]; then
         echo "Error: curl request failed"
+        echo $result
+        echo "Curl status: $status"
         exit 2
     fi
     cookie=$(echo $result | cut -d ":" -f 3 | cut -d '"' -f 2)
@@ -141,7 +144,7 @@ pwned() {
             "password": "'"$password"'"
         }'
 
-    result=$(curl -s --location 'http://127.0.0.1:3000/machines/pwn' \
+    result=$(curl -s --cacert cert.pem --location "$ctf_server/machines/pwn" \
         --header 'Content-Type: application/json' \
         --header "Cookie: Cookie_machine=$cookie" \
         --data '{
