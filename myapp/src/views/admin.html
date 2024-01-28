@@ -1,0 +1,56 @@
+<!-- src/views/chart.html -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CTF View</title>
+        <link rel="stylesheet" href="/css/style.css"/>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+        <!-- Include Moment.js and the Chart.js Moment adapter -->
+        <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    </head>
+<body>
+    <div id="header-container">
+        <nav id="adminLink">
+            <ul>
+                <li><a href="/chart">Back</a></li>
+            </ul>
+        </nav>
+        <div id="ctf-dropdown-container"></div>
+        <h1>ESGI Pentest Dashboard</h1>
+        <div id="mode">   
+            <div class="checkbox-wrapper-5">
+                <div class="check">
+                  <input type="checkbox" id="darkMode">
+                  <label for="darkMode"></label>
+                </div>
+                <label for="darkMode">Dark Mode</label>
+              </div>
+        </div>
+    </div>
+    <div id="ctfDetails">Loading CTF details...</div>
+    <h2>Ctf management</h2>
+    <div id="changeDetails">
+        <form action="/admin/changeDetails" method="POST">
+            <input type="hidden" id="ctf_id" name="ctf_id" value="1">
+            <label for="name">Name:</label>
+            <input type="text" id="ctf_name" name="ctf_name" required><br><br>
+            <label for="start">Start:</label>
+            <input type="date" id="start_date" name="start_date" required><br><br>
+            <label for="end">End:</label>
+            <input type="date" id="end_date" name="end_date" required><br><br>
+            <label for="startHour">Start hour:</label>
+            <input type="number" id="start_hour" name="start_hour" required><br><br>
+            <label for="endHour">End hour:</label>
+            <input type="number" id="end_hour" name="end_hour" required><br><br>
+            <input type="submit" value="Change">
+        </form>
+    </div>
+    <h2>User management</h2>
+    <div id="addUser"></div>
+    <!-- <script type="text/javascript"src="/public/ctfinfo.js"></script> -->
+    <script src="/style.js"></script>
+    <script src="/admin.js"></script>
+    
+</body>
+</html>

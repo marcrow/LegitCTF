@@ -70,6 +70,24 @@ function validateBody(req, res, next) {
                     return res.status(400).send(`Invalid ip parameter: ${param}`);
                 }   
             }
+            if(param == 'start_date' || param == 'end_date'){
+                result = validate_date(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
+            if(param == 'start_hour' || param == 'end_hour'){
+                result = validate_ctf_id(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
+            if(param == 'ctf_name'){
+                result = validate_ctfName(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
         }
     }
     next();
@@ -124,9 +142,12 @@ function validate_ctf_id(ctf_id){
 }
 
 function validate_date(date){
-    if (typeof date !== 'string' || date.length != 8) {
-        return -1;
-    }   
+    console.log("date: ", date)
+    if (typeof date !== 'string'){
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.length != 8) {
+            return -1;
+        }   
+    } 
     return date;
 }
 
@@ -144,6 +165,13 @@ function validateIp(ip){
         return true;
     }
     return false;
+}
+
+function validate_ctfName(ctfName){
+    if (typeof ctfName !== 'string' || ctfName.length > 50) {
+        return -1;
+    }   
+    return ctfName;
 }
 
 
@@ -175,6 +203,52 @@ function machineAccess(req, res, next) {
     }
 }
 
+function controlAdminSession(req, res, next) {
+    if(req.path == "/login" || req.path == "/logout" || req.path == "/admin/login"){
+        next();
+        return;
+    }
+    
+    if(req.session && req.session.admin){
+        next();
+    }
+    else{
+        var ipnumber = utils.getClientIPv4(req);
+        console.log("Forbidden access from (no session)" + ipnumber);
+        return res.redirect('/admin/login'); // Redirect to the login page
+    }
+}
+
+function controlAdminNetwork(req, res, next) {
+    var adminNetwork = "127.0.0.1/24"
+    var ipnumber = utils.getClientIPv4(req);
+    if (checkIfIpIsAllowed(ipnumber, adminNetwork))
+    {
+        next();
+    }
+    else
+    {
+        console.log("Forbidden access from " + ipnumber);
+        return res.status(403).send('Forbidden');
+    }
+}
+
+function adminAccess(req, res, next) {
+    // Call controlAdminNetwork middleware
+    controlAdminNetwork(req, res, function(err) {
+        if (err) {
+            return res.status(403).send('Forbidden');
+        }
+        
+        // Call controlAdminSession middleware
+        controlAdminSession(req, res, function(err) {
+            if (err) {
+                return res.redirect('/admin/login');
+            }
+            next();
+        });
+    });
+}
 
 //----------------VM Controlls----------------
 
@@ -215,5 +289,6 @@ module.exports = {
     validateQueryInteger,
     validateArgs,
     machineAccess,
-    checkVMCookie 
+    checkVMCookie,
+    adminAccess 
 };

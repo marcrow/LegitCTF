@@ -274,12 +274,29 @@ function generate_global_labels() {
  * @returns {number} - The calculated hour of the pwn from the start of the CTF.
  */
 function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end_hour) {
+    start_date = Number(start_date);
+    start_hour = Number(start_hour);
+    pwn_date = Number(pwn_date);
+    pwn_hour = Number(pwn_hour);
+    end_hour = Number(end_hour);
     console.log("start_date", start_date)
     console.log("start_hour", start_hour)
     console.log("pwn_date", pwn_date)   
     console.log("pwn_hour", pwn_hour)
     console.log("end_hour", end_hour)
     if (pwn_hour < start_hour || pwn_hour > end_hour || pwn_date < start_date || pwn_date > Number(localStorage.getItem('ctf_end_date'))) {
+        if (Number(pwn_hour) < Number(start_hour)){
+            console.log("Error: pwn_hour < start_hour")
+        }
+        if (pwn_hour > end_hour){
+            console.log("Error: pwn_hour > end_hour")
+        }
+        if (pwn_date < start_date){
+            console.log("Error: pwn_date < start_date")
+        }
+        if (pwn_date > Number(localStorage.getItem('ctf_end_date'))){
+            console.log("Error: pwn_date > Number(localStorage.getItem('ctf_end_date'))")
+        }
         return -1;
     }
     let nb_days = pwn_date - start_date;
@@ -313,7 +330,6 @@ async function getGlobalData(ctfs_id, userList) {
             if (hour == -1) {
                 return acc;
             }
-            console.log(hour)
             if (!acc[entry.username]) {
                 acc[entry.username] = {};
             }
@@ -323,7 +339,6 @@ async function getGlobalData(ctfs_id, userList) {
             acc[entry.username][hour]++;
             return acc;
         }, userList);
-        console.log("userList", userList)
         return userList;
     } catch (error) {
         console.log("Error fetching pwned data: ", error);

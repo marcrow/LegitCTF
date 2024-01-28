@@ -280,7 +280,6 @@ async function getDefaultPassword(ctf_id, machine_name) {
             ctf_id = ? AND machine_name = ?;
         `;
         const [rows] = await conn.query(query, [ctf_id, machine_name]);
-        console.log("rows: ", rows);
         return rows;
     } catch (err) {
         console.error('Error in getDefaultPassword:', err);
@@ -381,6 +380,29 @@ async function updateCookie(instanceId, cookieValue) {
     }
 }
 
+async function getMachineName(instanceId){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                machine_name
+            FROM 
+                ctf_vm_instance
+            WHERE 
+                instance_id = ?;
+        `;
+        const [rows] = await conn.query(query, [instanceId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in checkMachineName:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
 async function checkUserPassword(password) {
     let conn;
     console.log(password)
@@ -431,4 +453,55 @@ async function pwn(ctf_id, ctf_machine_name, user_id) {
 }
 
 
-module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie };
+//------------------ Admin ------------------//
+async function checkAdminPassword(username, password) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                admin_id
+            FROM 
+                admin
+            WHERE 
+                username = ? AND password = ?;
+        `;
+        const [rows] = await conn.query(query, [username, password]);
+        return rows;
+    } catch (err) {
+        console.error('Error in checkAdminPassword:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function updateCtf(ctfId, ctfName, startDate, endDate, startHour, endHour){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            UPDATE 
+                ctfs
+            SET
+                ctf_name = ?,
+                start_date = ?,
+                end_date = ?,
+                start_hour = ?,
+                end_hour = ?
+            WHERE 
+                ctf_id = ?;
+        `;
+        const rows = await conn.query(query, [ctfName, startDate, endDate, startHour, endHour, ctfId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in updateCtf:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+} 
+
+module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf};

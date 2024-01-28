@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- CTFs Table
 CREATE TABLE IF NOT EXISTS ctfs (
     ctf_id INT AUTO_INCREMENT PRIMARY KEY,
-    ctf_name VARCHAR(100) NOT NULL,
+    ctf_name VARCHAR(25) NOT NULL,
     start_date DATE,
     end_date DATE,
     start_hour INT,  -- hour of the day 
@@ -70,6 +70,14 @@ CREATE TABLE IF NOT EXISTS pwned (
     -- Add other details for each compromise here
 );
 
+-- Compromised_Machines Table
+CREATE TABLE IF NOT EXISTS admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+    -- Add other details for each compromise here
+);
+
 /*
     Inserting some dummy data for testing
 */      
@@ -78,9 +86,11 @@ INSERT INTO users (username, password) VALUES ('prof1', 'ThisIsATestUser1');
 INSERT INTO users (username, password) VALUES ('prof2', 'ThisIsATestUser3');
 
 INSERT INTO ctfs (ctf_name, start_date, end_date, start_hour, end_hour)
-VALUES ('Awesome CTF Challenge', '2024-01-19', '2024-01-21',8,18);
+VALUES ('Awesome CTF Challenge', '2024-01-28', '2024-01-31',8,18);
 INSERT INTO ctfs (ctf_name, start_date, end_date, start_hour, end_hour)
-VALUES ('Esgi ctf', '2024-01-10', '2024-01-11',9,17);
+VALUES ('Esgi ctf', '2024-01-28', '2024-01-31',9,17);
+
+
 
 
 INSERT INTO users_ctfs (user_id, ctf_id, attempt)
@@ -115,9 +125,10 @@ VALUES (2,'Rabbit', 50, 'Hard', 'AnotherPassword');
 
 
 INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
-VALUES (2, 'MachineAlpha', 1, '2024-01-11 14:35:00'); 
+VALUES (2, 'MachineAlpha', 1, '2024-01-28 14:35:00'); 
 INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
-VALUES (2, 'MachineAlpha', 2, '2024-01-11 16:37:00'); 
+VALUES (2, 'MachineAlpha', 2, '2024-01-28 16:37:00'); 
 INSERT INTO pwned (ctf_id, ctf_machine_name, user_id, compromise_time)
-VALUES (2, 'Rabbit', 2, '2024-01-11 17:37:00'); 
+VALUES (2, 'Rabbit', 2, '2024-01-28 17:37:00'); 
+
 

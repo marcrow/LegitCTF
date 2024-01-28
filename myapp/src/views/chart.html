@@ -10,8 +10,24 @@
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     </head>
 <body>
-    <h1>ESGI Pentest Dashboard</h1>
-    <div id="ctf-dropdown-container"></div>
+    <div id="header-container">
+        <nav id="adminLink">
+            <ul>
+                <li><a href="/admin">Admin</a></li>
+            </ul>
+        </nav>
+        <div id="ctf-dropdown-container"></div>
+        <h1>ESGI Pentest Dashboard</h1>
+        <div id="mode">   
+            <div class="checkbox-wrapper-5">
+                <div class="check">
+                  <input type="checkbox" id="darkMode">
+                  <label for="darkMode"></label>
+                </div>
+                <label for="darkMode">Dark Mode</label>
+              </div>
+        </div>
+    </div>
     <div id="ctfDetails">Loading CTF details...</div>
     <!-- <script type="text/javascript"src="/public/ctfinfo.js"></script> -->
     <div class="dailyView">

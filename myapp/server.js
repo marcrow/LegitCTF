@@ -9,15 +9,33 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dbService = require('./src/services/dbService'); // Database service
 const apiRouter = require('./src/routes/apiRouter'); // Adjust the path as necessary
+const adminRouter = require('./src/routes/adminRouter'); // adjust the path according to your project structure
 const machinesRouter = require('./src/routes/machinesRouter'); // Adjust the path as necessary
 const { validateArgs } = require('./src/middlewares/securityControls');
-const { machineAccess } = require('./src/middlewares/securityControls'); // Adjust the path as necessary
+const { machineAccess, adminAccess } = require('./src/middlewares/securityControls'); // Adjust the path as necessary
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
 app.use(express.static('public')); // Serve static files from the public directory
 
+app.use(express.static('views'));
+
 app.use(express.json());
+
+function generateSessionSecret() {
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256');
+    hash.update('session' + Math.random());
+    return hash.digest('hex');
+}
+
+session_secret = generateSessionSecret();
+
+app.use(session({
+    secret: session_secret,
+    resave: false,
+    saveUninitialized: true
+  }));
 
 const privateKey = fs.readFileSync('config/key.pem', 'utf8');
 const certificate = fs.readFileSync('config/cert.pem', 'utf8');
@@ -40,9 +58,15 @@ app.use('/api', apiRouter);
 // Use the machines router for routes starting with '/machines'
 app.use('/machines', machineAccess, machinesRouter);
 
+app.use(express.urlencoded({ extended: true }));
+app.use('/admin',adminAccess, adminRouter);
+
+
+
+
 app.get('/chart', async (req, res) => {
     try {
-        const data = await dbService.getCompromisedData(); // Fetch data for chart
+        // const data = await dbService.getCompromisedData(); // Fetch data for chart
         res.sendFile(path.join(__dirname, 'src/views/chart.html')); // Send the HTML file
     } catch (err) {
         console.error(err);
@@ -68,5 +92,5 @@ app.get('/data', validateArgs, async (req, res) => {
 const httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(port, () => {
-  console.log('Serveur HTTPS lancé sur le port 443');
+  console.log('Serveur HTTPS lancé sur le port ' + port);
 });

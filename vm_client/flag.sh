@@ -8,6 +8,7 @@
 # 4 - cookie file not found
 # 5 - password cannot be empty
 # 6 - unknown error - unable to extract cookie
+# 7 - cookie extraction failed
 
 config_file="./flag.conf"
 
@@ -74,7 +75,14 @@ save_cookie() {
 
 extract_cookie(){
     result=$1
+    iscookie=$(echo $result | cut -d '"' -f 2)
+    if [[ $iscookie != "cookie_machine" ]]; then
+        echo "$result"
+        echo "Cookie extraction failed!"
+        exit 7
+    fi
     cookie=$(echo $result | cut -d '"' -f 4)
+    
     save_cookie "$cookie"
 }
 
@@ -106,6 +114,11 @@ first_auth() {
         echo "Error: curl request failed"
         echo $result
         echo "Curl status: $status"
+        exit 2
+    fi
+    test_result=$(echo $result | cut -d ":" -f 2 | cut -d '"' -f 2)
+    if [[ $test_result != "new_cookie" ]]; then
+        echo "Error: $result"
         exit 2
     fi
     cookie=$(echo $result | cut -d ":" -f 3 | cut -d '"' -f 2)

@@ -5,20 +5,30 @@ const { validateArgs } = require('../middlewares/securityControls');
 const { checkVMCookie } = require('../middlewares/securityControls');
 const { createCookie } = require('../controllers/vmCookie');
 const utils = require('../controllers/utils');
-const {connections} = require('../middlewares/sse');
+const sseMiddleware = require('../middlewares/sse');
+const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
 
-function sendEventsToAll(data) {
-    console.log("coucou")
-    console.log("user connected: ", connections.length)
+function sendEventsToAll(data, connections) {
+    if (!connections) return;
     connections.forEach((res) => {
         res.write(`data: ${JSON.stringify(data)}\n\n`);
     });
 }
 
-router.get('/test', async (req, res) => {
+router.get('/test', sseMiddleware, async (req, res) => {
     try {
         res.send('OK');
-        sendEventsToAll("coucou");
+        notifData = {
+            "type": "pwn",
+            "ctf_id": 1,
+            "user": "prof",
+            "machine": "ctf_machine_name",
+            "day": 20240110,
+            "hour": 11
+            // "day": convertToYYYYMMDD(convertToDateSQL(new Date().toISOString())),
+            // "hour": new Date().toISOString().split("T")[1].split(".")[0],
+        }
+        sendEventsToAll(notifData, req.connections);
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -78,7 +88,9 @@ router.post('/testAuth/', checkVMCookie, async (req, res) => {
     }
 });
 
-router.post('/pwn', validateArgs, checkVMCookie, async (req, res) => {
+
+
+router.post('/pwn', validateArgs, checkVMCookie, sseMiddleware, async (req, res) => {
     try {
         const instance_id = req.body.instance_id;
         const ctf_id = req.body.ctf_id;
@@ -87,20 +99,44 @@ router.post('/pwn', validateArgs, checkVMCookie, async (req, res) => {
         const ctf_machine_name = req.body.machine_name;
 
         if (!instance_id || !ctf_id || !password || !ctf_machine_name) {
-            return res.status(400).send('instance_id, ctf_id, ctf_machine_name and password are required');
+            return res.status(400).send('Error: instance_id, ctf_id, ctf_machine_name and password are required');
         }
 
-        const user = await dbService.checkUserPassword(password);
-        console.log("user: ", user);
-        const user_id = user.user_id;
-        if(!user_id || user_id == null){
-            return res.status(400).send('wrong password');
+        // Control machine name
+        const instance = await dbService.getMachineName(instance_id);
+        if(instance.machine_name != ctf_machine_name){
+            return res.status(400).send('Error: wrong machine name');
         }
+
+        // Control if the user password is correct
+        const user = await dbService.checkUserPassword(password);
+        if(user == null){
+            return res.status(400).send('Error: wrong password');
+        }
+        const user_id = user.user_id;
+        console.log("user: ", user);
 
         const response = await dbService.pwn(ctf_id, ctf_machine_name, user_id);
         if(response.affectedRows == 0){
-            return res.status(400).send('already pwned');
+            return res.status(400).send('Error: already pwned');
         }
+        notifData = {
+            "type": "pwn",
+            "user": user.username,
+            "machine": ctf_machine_name,
+            "ctf_id": ctf_id,
+            "day": convertToYYYYMMDD(new Date().toISOString().split("T")[0]),
+            "hour": new Date().toISOString().split("T")[1].split(".")[0].split(":")[0],
+        }
+
+        console.log(convertToYYYYMMDD(new Date().toISOString()))
+        console.log(convertToDateSQL(new Date().toISOString()))
+        console.log(new Date().toISOString())
+
+
+
+
+        sendEventsToAll(notifData, req.connections);
         const new_cookie = createCookie();
         await dbService.updateCookie(instance_id, new_cookie);
         res.status(200).json({'cookie_machine':new_cookie});

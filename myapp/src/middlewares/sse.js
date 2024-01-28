@@ -1,20 +1,28 @@
-// Stocker les connexions SSE
+// sse.js
 let connections = [];
 
 const sseMiddleware = function (req, res, next) {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+  if (req.path == '/events') {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-  // Ajouter cette connexion à la liste
-  connections.push(res);
+    // Add this connection to the list
+    connections.push(res);
 
-  // Nettoyer lors de la fermeture de la connexion
-  req.on('close', () => {
-    connections = connections.filter(conn => conn !== res);
-  });
+    // Clean up when the connection is closed
+    const cleanup = () => {
+      connections = connections.filter(conn => conn !== res);
+    };
+
+    res.on('finish', cleanup);
+    res.on('error', cleanup);
+  }
+
+  // Add the connections to the request object
+  req.connections = connections;
 
   next();
 };
 
-module.exports = {sseMiddleware, connections};
+module.exports = sseMiddleware;

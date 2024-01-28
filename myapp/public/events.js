@@ -1,28 +1,63 @@
-// Établir la connexion SSE
-window.onload = function() {
-    const evtSource = new EventSource('/api/events');
-    const messageContainer = document.getElementById('messageContainer');
+const darkGridLineColor = 'grey';
+const lightGridLineColor = '#626200';
 
-    evtSource.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        console.log('Nouvel événement SSE:', data);
-        message = "";
-        if (typeof data === 'string') {
-            console.log('data is a string');
-            message = `Message: ${data}, Timestamp: ${new Date().toISOString()}`
+function changeChartMode(myChart, dark){
+    if (!dark) {
+        myChart.options.scales.x.grid.color = darkGridLineColor;
+        myChart.options.scales.y.grid.color = darkGridLineColor;
+        myChart.options.scales.y.ticks.color = lightGridLineColor;
+        myChart.options.scales.x.ticks.color = lightGridLineColor;
+      } else {
+        myChart.options.scales.x.grid.color = lightGridLineColor;
+        myChart.options.scales.y.grid.color = lightGridLineColor;
+        myChart.options.scales.y.ticks.color = lightGridLineColor;
+        myChart.options.scales.x.ticks.color = lightGridLineColor;
+      }
+      myChart.update();
+
+}
+
+function changeCSS(dark){
+    if (dark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+}
+
+function isLocalhost() {
+    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+}
+
+default_mode = "dark";
+
+document.getElementById('darkMode').addEventListener('click', () => {
+    let toDarkMode = document.getElementById('darkMode').checked;
+    if(window.daily_chart  && window.global_chart){
+        if(toDarkMode){
+            localStorage.setItem('color_line', lightGridLineColor);
         }
         else{
-            message = `Message: ${data.message}, Timestamp: ${data.timestamp}`;
+            localStorage.setItem('color_line', darkGridLineColor);
         }
+        changeChartMode(window.daily_chart, toDarkMode);
+        changeChartMode(window.global_chart, toDarkMode);
+    }
+    changeCSS(toDarkMode);
 
-        // Afficher le contenu de l'événement dans le conteneur
-        const messageElement = document.createElement('div');
-        messageElement.innerHTML = message;
-        messageContainer.appendChild(messageElement);
-    };
 
-    evtSource.onerror = function(err) {
-        console.error('Erreur SSE:', err);
-        // Vous pouvez gérer les erreurs ici
-    };
-};
+});
+
+if(default_mode == "dark"){
+    document.getElementById('darkMode').checked = true;
+    localStorage.setItem('color_line', lightGridLineColor);
+    changeCSS(true);
+} else {
+    document.getElementById('darkMode').checked = false;
+    localStorage.setItem('color_line', darkGridLineColor);
+    changeCSS(false);
+}
+
+if (!isLocalhost()) {
+    document.getElementById('adminLink').style.display = 'none';
+}

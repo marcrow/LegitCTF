@@ -4,11 +4,11 @@ const { validateInteger } = require('../middlewares/securityControls'); // Adjus
 const dbService = require('../services/dbService'); // Adjust the path as necessary
 const { validateArgs } = require('../middlewares/securityControls');
 const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
-const {sseMiddleware} = require('../middlewares/sse'); // Adjust the path as necessary
+const sseMiddleware = require('../middlewares/sse'); // Adjust the path as necessary
 
 router.get('/events', sseMiddleware, (req, res) => {
 
-  });
+});
 
 
 // Define the API route for getting a single CTF by ID
