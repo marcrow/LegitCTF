@@ -88,6 +88,12 @@ function validateBody(req, res, next) {
                     return res.status(400).send(`Invalid body parameter: ${param}`);
                 }   
             }
+            if(param == 'username'){
+                result = validate_username(req.body[param])
+                if(result == -1){
+                    return res.status(400).send(`Invalid body parameter: ${param}`);
+                }   
+            }
         }
     }
     next();
@@ -172,6 +178,13 @@ function validate_ctfName(ctfName){
         return -1;
     }   
     return ctfName;
+}
+
+function validate_username(username){
+    if (typeof username !== 'string' || username.length > 25) {
+        return -1;
+    }   
+    return username;
 }
 
 

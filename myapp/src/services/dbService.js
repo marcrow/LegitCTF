@@ -504,4 +504,166 @@ async function updateCtf(ctfId, ctfName, startDate, endDate, startHour, endHour)
     }
 } 
 
-module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf};
+async function getCtfUser(ctfId){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                u.user_id, u.username, u.password
+            FROM 
+                users u
+            JOIN
+                users_ctfs uc ON u.user_id = uc.user_id
+            WHERE 
+                uc.ctf_id = ?;
+        `;
+        const rows = await conn.query(query, [ctfId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in getCtfUser:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function testIfUserExistsInCtf(ctfId, user_id){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                user_id
+            FROM 
+                users_ctfs
+            WHERE 
+                ctf_id = ? AND user_id = ?;
+        `;
+        const [rows] = await conn.query(query, [ctfId, user_id]);
+        if (rows && rows.user_id){
+            return true;
+        } else return false;
+    } catch (err) {
+        console.error('Error in testIfUserExists:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+async function testIfUserExists(username){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                user_id
+            FROM 
+                users
+            WHERE 
+                username = ?;
+        `;
+        const [row] = await conn.query(query, [username]);
+        console.log("row", row);
+        if (row && row.user_id){
+            return row.user_id;
+        } else return false;
+    } catch (err) {
+        console.error('Error in testIfUserExists:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+
+async function createUser(ctfId, username, password){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        let isExist = await testIfUserExists(username);
+        console.log("isExist: ", isExist);
+        if(isExist != false){
+            return isExist;
+        }
+        const query = `
+            INSERT INTO 
+                users (username, password)
+            VALUES 
+                (?, ?);
+        `;
+        const rows = await conn.query(query, [username, password]);
+        if(rows.affectedRows > 0){
+            let isExist = await testIfUserExists(username);
+            console.log("isExist: ", isExist);
+            return isExist;
+        }
+        return rows;
+    } catch (err) {
+        console.error('Error in createUser:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+
+async function addUserToCtf(ctfId, userId){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const isExist = await testIfUserExistsInCtf(ctfId, userId);
+        if(isExist == true){
+            return false;
+        }
+        const query = `
+            INSERT INTO 
+                users_ctfs (user_id, ctf_id)
+            VALUES 
+                (?, ?);
+        `;
+        const rows = await conn.query(query, [userId, ctfId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in addUserToACtf:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function resetPassword(username, password){
+    let conn;
+    try {
+        let isExist = await testIfUserExists(username);
+        if(isExist == false){
+            return false;
+        }
+        conn = await pool.getConnection();
+
+        const query = `
+            UPDATE 
+                users
+            SET
+                password = ?
+            WHERE 
+                username = ?;
+        `;
+        const rows = await conn.query(query, [password, username]);
+        return rows;
+    } catch (err) {
+        console.error('Error in resetPassword:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf, getCtfUser, testIfUserExists, createUser, addUserToCtf, resetPassword};

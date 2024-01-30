@@ -25,21 +25,24 @@ function changeCSS(dark){
     }
 }
 
-
+function isLocalhost() {
+    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+}
 
 default_mode = "dark";
 
 document.getElementById('darkMode').addEventListener('click', () => {
-    
     let toDarkMode = document.getElementById('darkMode').checked;
-    if(toDarkMode){
-        localStorage.setItem('color_line', lightGridLineColor);
+    if(window.daily_chart  && window.global_chart){
+        if(toDarkMode){
+            localStorage.setItem('color_line', lightGridLineColor);
+        }
+        else{
+            localStorage.setItem('color_line', darkGridLineColor);
+        }
+        changeChartMode(window.daily_chart, toDarkMode);
+        changeChartMode(window.global_chart, toDarkMode);
     }
-    else{
-        localStorage.setItem('color_line', darkGridLineColor);
-    }
-    changeChartMode(window.daily_chart, toDarkMode);
-    changeChartMode(window.global_chart, toDarkMode);
     changeCSS(toDarkMode);
 
 
@@ -55,4 +58,6 @@ if(default_mode == "dark"){
     changeCSS(false);
 }
 
-
+if (!isLocalhost()) {
+    document.getElementById('adminLink').style.display = 'none';
+}

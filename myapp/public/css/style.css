@@ -1,8 +1,10 @@
 body {
     --main-color: #f6eee3;
+    --back-color: #ffe2b9;
     --text-color: #1b3c70;
     --secundary-color: #0f6292;
     --third-color: #d7d7d7;
+    --editable-color: #77cd8c;
     background-color: var(--main-color);
     color: var(--text-color);
 }
@@ -10,9 +12,11 @@ body {
 
 .dark-mode {
     --main-color: #232b38;
+    --back-color: #1b1c2bea;
     --text-color: #16ff00;
-    --third-color: #464917;
     --secundary-color: #FFED00;
+    --third-color: #464917;
+    --editable-color: #f6eee3;
 }
 
 /* Styles généraux */
@@ -81,10 +85,53 @@ p {
 }
 
 
+/* User table */
+.userTableContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
-  
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--text-color);
+    font-family: monospace;
+    font-size: 25px;
+    text-align: left;
+    margin-bottom: 40px;
+    /* border: var(--secundary-color) 1px solid; */
+}
+
+
+td{
+    border: var(--back-color) 1px solid;
+    color: var(--secundary-color);
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+th {
+    color: var(--text-color);
+    background-color: var(--back-color);
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+
+
+tr:first-child th:last-child { border-top-right-radius: 10px; }
+tr:first-child th:first-child { border-top-left-radius: 10px; }
+
+tr:last-child td:first-child { border-bottom-left-radius: 5px; }
+tr:last-child td:last-child { border-bottom-right-radius: 5px; }
 
 /* Styles du main */
+.body{
+    margin-left: 5rem;
+}
+
 h1 {
     color: var(--text-color);
     font-size: 3rem;
@@ -99,25 +146,70 @@ h2 {
 }
 
 button {
-    background-color: #0f6292;
+    background-color: var(--editable-color);
     color: #000000;
     border: none;
-    border-radius: 10px 10px 0px 0px;
+    border-radius: 10px 10px 10px 10px;
     font-size: 1.5rem;
     padding: 0.5rem 1rem;
     margin-top: 1rem;
+    margin-bottom: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-/* button:hover {
-    background-color: #e6e6e6; 
-    color: #ffffff;
-} */
+button:hover {
+    background-color: var(--back-color); 
+    color: var(--editable-color);
+}
 
 .current{
     border-bottom: solid var(--text-color);
 }
+
+form {
+    background-color: var(--back-color);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    margin: 2rem;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+input{
+    background-color: var(--editable-color);
+    color: var(--back-color);
+    font-size: 15px;
+    width: 400px;
+    margin-right: 3em;
+    border-radius: 5px 10px 10px 5px;
+    margin-left: 20px;
+}
+
+input[type="number"] {
+    width: 40px;
+}
+
+input[type="text"] {
+    width: 200px;
+}
+
+input[type="submit"] {
+    background-color: var(--editable-color);
+    color: var(--back-color);
+    font-size: 15px;
+    width: 100px;
+    border-radius: 10px 10px 10px 10px;
+    margin-left: 20px;
+}
+
+input[type="submit"]:hover {
+    background-color: var(--back-color); 
+    color: var(--editable-color);
+}
+
 
 .intro{
     margin-top: 40px;
