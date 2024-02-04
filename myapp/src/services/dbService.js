@@ -666,4 +666,22 @@ async function resetPassword(username, password){
     }
 }
 
+async function logout(instance_id){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            DELETE FROM ctf_vm_instance WHERE instance_id = ?;
+        `;
+        const rows = await conn.query(query, [instance_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in logout:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
 module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf, getCtfUser, testIfUserExists, createUser, addUserToCtf, resetPassword};

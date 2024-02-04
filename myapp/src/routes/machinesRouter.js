@@ -63,6 +63,7 @@ router.post('/firstAuth/', validateArgs, async (req, res) => {
 });
 
 
+
 router.post('/getInstanceId/', validateArgs, async (req, res) => {
     try {
         const ctf_id = req.body.ctf_id;
@@ -145,6 +146,29 @@ router.post('/pwn', validateArgs, checkVMCookie, sseMiddleware, async (req, res)
     }
 });
 
+router.post("/logout", validateArgs, checkVMCookie, sseMiddleware, async (req, res) => {
+    try {
+        const instance_id = req.body.instance_id;
+        const ctf_id = req.body.ctf_id;
+        if (!instance_id || !ctf_id) {
+            return res.status(400).send('Error: instance_id and ctf_id are required');
+        }
+
+        const response = await dbService.logout(instance_id);
+        if(response.affectedRows == 0){
+            return res.status(400).send('Error: already logged out');
+        }
+        notifData = {
+            "type": "logout",
+            "ctf_id": ctf_id,
+            "machine": instance_id,
+        }
+        sendEventsToAll(notifData, req.connections);
+        res.status(200).send('OK');
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 module.exports = router;

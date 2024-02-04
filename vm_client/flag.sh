@@ -9,6 +9,7 @@
 # 5 - password cannot be empty
 # 6 - unknown error - unable to extract cookie
 # 7 - cookie extraction failed
+# 8 - error during logout request
 
 config_file="./flag.conf"
 
@@ -20,11 +21,11 @@ fi
 # Function to retrieve parameters from flag.conf file
 retrieve_parameters() {
     if [[ -f "$config_file" ]]; then
-        ctf_server=$(grep "CTF_SERVER" "$config_file" | cut -d "=" -f 2)
-        default_password=$(grep "DEFAULT_PASSWORD" "$config_file" | cut -d "=" -f 2)
-        machine_name=$(grep "MACHINE_NAME" "$config_file" | cut -d "=" -f 2)
-        ctf_id=$(grep "CTF_ID" "$config_file" | cut -d "=" -f 2)
-        instance_id=$(grep "INSTANCE_ID" "$config_file" | cut -d "=" -f 2)
+        ctf_server=$(grep "CTF_SERVER" "$config_file" | grep -v "^#" | cut -d "=" -f 2)
+        default_password=$(grep "DEFAULT_PASSWORD" "$config_file" | grep -v "^#" | cut -d "=" -f 2)
+        machine_name=$(grep "MACHINE_NAME" "$config_file" | grep -v "^#" | cut -d "=" -f 2)
+        ctf_id=$(grep "CTF_ID" "$config_file" | grep -v "^#" | cut -d "=" -f 2)
+        instance_id=$(grep "INSTANCE_ID" "$config_file" | grep -v "^#" | cut -d "=" -f 2)
     else
         echo "Configuration file not found!"
         exit 1
@@ -178,6 +179,35 @@ pwned() {
     echo "Response Body: $result"
     extract_cookie "$result"
 }
+
+
+# Function to exploit the system
+logout() {
+    retrieve_parameters
+    retrieve_cookie
+
+
+    result=$(curl -s --cacert cert.pem --location "$ctf_server/machines/logout" \
+        --header 'Content-Type: application/json' \
+        --header "Cookie: Cookie_machine=$cookie" \
+        --data '{
+            "ctf_id": '"$ctf_id"',
+            "instance_id": '"$instance_id"',
+            "machine_name": "'"$machine_name"'"
+        }')
+    status=$?
+    if [[ $result == *"Error"* ]]; then
+        echo "$result"
+        exit 8
+    fi    
+    if [[ $? -ne 0 ]]; then
+        echo "Error: curl request failed"
+        exit 8
+    fi
+    echo "Response Body: $result"
+}
+
+
     
 
 # Check arguments and execute appropriate function
@@ -187,6 +217,9 @@ if [[ $1 == "-f" || $1 == "--first" ]]; then
 elif [[ $1 == "-p" || $1 == "--pwned" || $# -eq 0 ]]; then
     pwned
     exit 0
+elif [[ $1 == "-l" || $1 == "--logout" ]]; then
+    logout
+    exit 0  
 else
     echo "Invalid argument provided!"
     exit 1
