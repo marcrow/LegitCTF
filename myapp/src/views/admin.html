@@ -17,7 +17,7 @@
             </ul>
         </nav>
         <div id="ctf-dropdown-container"></div>
-        <h1>ESGI Pentest Dashboard</h1>
+        <h1>CTF Admin</h1>
         <div id="mode">   
             <div class="checkbox-wrapper-5">
                 <div class="check">
@@ -34,16 +34,26 @@
         <div id="changeDetails">
             <form action="/admin/changeDetails" method="POST">
                 <input type="hidden" id="ctf_id" name="ctf_id" value="1">
-                <label for="name">Name:</label>
-                <input type="text" id="ctf_name" name="ctf_name" required><br><br>
-                <label for="start">Start:</label>
-                <input type="date" id="start_date" name="start_date" required><br><br>
-                <label for="end">End:</label>
-                <input type="date" id="end_date" name="end_date" required><br><br>
-                <label for="startHour">Start hour:</label>
-                <input type="number" id="start_hour" name="start_hour" required><br><br>
-                <label for="endHour">End hour:</label>
-                <input type="number" id="end_hour" name="end_hour" required><br><br>
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="ctf_name" name="ctf_name" required>
+                </div>
+                <div>
+                    <label for="start">Start:</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <div>
+                    <label for="end">End:</label>
+                    <input type="date" id="end_date" name="end_date" required>
+                </div>
+                <div>
+                    <label for="startHour">Start hour:</label>
+                    <input type="number" id="start_hour" name="start_hour" required>
+                </div>
+                <div>
+                    <label for="endHour">End hour:</label>
+                    <input type="number" id="end_hour" name="end_hour" required>
+                </div>
                 <input type="submit" value="Change">
             </form>
         </div>
@@ -57,7 +67,8 @@
             </form>
         </div>
         <h2>User management</h2>
-        <div class="userTableContainer">
+        <div class="tableDiv">
+            <h3>User List</h3>
             <table id="userTableBody" >
                 <tr>
                     <th>Username</th>
@@ -65,12 +76,27 @@
                     <th>Action</th>
                 </tr>
                 <tr id="createUserRow">
-                    <td contenteditable="true"></td>
-                    <td contenteditable="true"></td>
+                    <td ></td>
+                    <td ></td>
                     <td><button>Edit</button></td>
                 </tr>
                 <!-- Add more rows as needed -->
             </table>
+        </div>
+        <h2>Machine management</h2>
+        <div class="multiTableDiv">
+            <div class="tableDiv">
+                <h3>Manage Machine</h3>
+                <table id="machineTableBody" >
+                    <!-- Add more rows as needed -->
+                </table>
+            </div>
+            <div class="tableDiv">
+                <h3> View pwn progression</h3>
+                <table id="pwnTableBody" >
+                </table>
+                <p id="nbUser">Number of users : </p>
+            </div>
         </div>
         
     </div>

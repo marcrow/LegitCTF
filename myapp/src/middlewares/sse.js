@@ -17,6 +17,7 @@ const sseMiddleware = function (req, res, next) {
 
     res.on('finish', cleanup);
     res.on('error', cleanup);
+    res.on('close', cleanup);
   }
 
   // Add the connections to the request object

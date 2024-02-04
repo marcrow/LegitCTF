@@ -20,9 +20,12 @@ function changeChartMode(myChart, dark){
 function changeCSS(dark){
     if (dark) {
         document.body.classList.add('dark-mode');
+        localStorage.setItem('dark-mode', "dark");
     } else {
         document.body.classList.remove('dark-mode');
+        localStorage.setItem('dark-mode', "light");
     }
+    
 }
 
 function isLocalhost() {
@@ -30,6 +33,7 @@ function isLocalhost() {
 }
 
 default_mode = "dark";
+
 
 document.getElementById('darkMode').addEventListener('click', () => {
     let toDarkMode = document.getElementById('darkMode').checked;
@@ -47,7 +51,10 @@ document.getElementById('darkMode').addEventListener('click', () => {
 
 
 });
-
+let storedMode = localStorage.getItem('dark-mode');
+if (storedMode) {
+    default_mode = storedMode;
+}
 if(default_mode == "dark"){
     document.getElementById('darkMode').checked = true;
     localStorage.setItem('color_line', lightGridLineColor);
@@ -61,3 +68,4 @@ if(default_mode == "dark"){
 if (!isLocalhost()) {
     document.getElementById('adminLink').style.display = 'none';
 }
+

@@ -73,5 +73,19 @@ router.get('/data', validateArgs, async (req, res) => {
 });
 
 
+router.get('/machines', validateArgs, async (req, res) => {
+    const ctfId = req.query.ctf_id; // Get ctf_id from query parameters
+    if (!ctfId) {
+        return res.status(400).send('CTF ID is required');
+    }
+    try {
+        const machines = await dbService.listVMInstance(ctfId);
+        res.json(machines);
+    } catch (err) {
+        console.error('Error fetching machines for CTF:', err);
+        res.status(500).send('Error fetching machines for CTF');
+    }
+});
+
 
 module.exports = router;

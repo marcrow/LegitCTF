@@ -17,40 +17,63 @@
             </ul>
         </nav>
         <div id="ctf-dropdown-container"></div>
-        <h1>ESGI Pentest Dashboard</h1>
-        <div id="mode">   
+        <h1>CTF Dashboard</h1>
+        <div class="mode" id="mode">   
             <div class="checkbox-wrapper-5">
+                <label for="darkMode" class="pc">Light Mode</label>
                 <div class="check">
                   <input type="checkbox" id="darkMode">
                   <label for="darkMode"></label>
                 </div>
-                <label for="darkMode">Dark Mode</label>
+                <label for="darkMode" class="pc">Dark Mode</label>
               </div>
         </div>
     </div>
+    
+    <div id="snackbarContainer"></div>
+    <div class="body">
     <div id="ctfDetails">Loading CTF details...</div>
     <!-- <script type="text/javascript"src="/public/ctfinfo.js"></script> -->
     <div class="dailyView">
-        <h2>Vue Journalière</h2>
-        <h3>Paramètres</h3>
-        <div id="date-dropdown-container"></div>
-        <input type="checkbox" id="previousPoint"><label>Afficher les points précédents.</label></input>
-        <input type="checkbox" id="darkMode"><label>Mode nuit</label></input>
+        <h2>Daily View</h2>
+        <div class="container">
+            <h3>Settings</h3>
+            <div id="date-dropdown-container">- Select Day </div>
+            <div>
+                <label>- View previous compromission</label>
+                <input type="checkbox" id="previousPoint"></input>
+            </div>
+        </div>
         <div id="div-compromisedChart">
             <canvas id="compromisedChart" width="800" height="400"></canvas>
         </div>
     </div>
     <div class="globalView">
-        <h2>Vue globale</h2>
+        <h2>Ctf View</h2>
         <div id="div-generalChart">
             <canvas id="generalChart" width="800" height="400"></canvas>
         </div>
     </div>
+    <h2>Challenge</h2>
+        <div class="tableDiv">
+            <table id="machine-table" >
+                <tr>
+                    <th>Challenge</th>
+                    <th>IP</th>
+                </tr>
+                <tr id="instance">
+                    <td ></td>
+                    <td ></td>
+                </tr>
+                <!-- Add more rows as needed -->
+            </table>
+        </div>
     <h2>Notifications</h2>
     <div id="messageContainer"></div>
     <script src="/ctfInfo.js"></script>
     <script src="/style.js"></script>
     <script src="event.js"></script>
+    </div>
     
 </body>
 </html>

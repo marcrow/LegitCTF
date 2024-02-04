@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', async function () {
     await listCtf();
     ctfId = retrieveCtfIdFromDropdown();
@@ -5,6 +6,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     fetchCtfDetails(ctfId);
     const users = await retrieveUsers(ctfId);
     fillUserTable(users);
+    const machines = await retrieveMachines(ctfId);
+    fillMachineTable(machines);
+    const pwns = await retrievePwnMachines(ctfId);
+    fillPwnTable(pwns);
 
 });
 
@@ -17,6 +22,10 @@ function attachDropdownListener() {
             await fetchCtfDetails(ctfId);
             const users = await retrieveUsers(ctfId);
             fillUserTable(users);
+            const machines = await retrieveMachines(ctfId);
+            fillMachineTable(machines);
+            const pwns = await retrievePwnMachines(ctfId);
+            fillPwnTable(pwns);
         }
     });
 }
@@ -171,16 +180,19 @@ function displayCtfDetails(ctf) {
 }
 
 //-----------------User info-----------------
-
+let nb_users = 0; 
 // Retrieve users from the server
 async function retrieveUsers(ctfId) {
     const response = await fetch(`/admin/users?ctf_id=${ctfId}`);
     const users = await response.json();
+    nb_users = users.length;
+    const pUser = document.getElementById('nbUser');
+    pUser.innerHTML = `Number of users: ${nb_users}`;
     updateAddUserForm(ctfId);
     return users;
 }
 
-function getDefaulTable(){
+function getDefaulUserTable(){
     const tableBody = document.getElementById('userTableBody');
     tableBody.innerHTML = '';
     let row = document.createElement('tr');
@@ -196,7 +208,7 @@ function getDefaulTable(){
 
 // Fill the table with user data
 function fillUserTable(users) {
-    const tableBody = getDefaulTable();
+    const tableBody = getDefaulUserTable();
     users.forEach(user => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -247,5 +259,216 @@ async function resetPassword(username) {
     
 }
 
+//-----------------Machine info-----------------
+async function retrieveMachines(ctfId) {
+    const response = await fetch(`/admin/machines?ctf_id=${ctfId}`);
+    const machines = await response.json();
+    return machines;
+}
+
+function getDefaulMachineTable(){
+    const tableBody = document.getElementById('machineTableBody');
+    tableBody.innerHTML = '';
+    let row = document.createElement('tr');
+    row.innerHTML = `
+    <tr class="firstRow">
+        <th>Machine</th>
+        <th>IP</th>
+        <th>State</th>
+        <th>Action</th>
+    </tr>`;
+    tableBody.appendChild(row);
+    return tableBody;
+}
+
+// Fill the table with user data
+function fillMachineTable(machines) {
+    const tableBody = getDefaulMachineTable();
+    machines.forEach(machine => {
+        button2 = '';
+        if(machine.is_running == true){
+            machine.state = "running";
+            button2 = `<button class="stateButton" onclick="stopMachine('${machine.instance_id}')">Stop</button>`;
+        }else{
+            machine.state = "stopped";
+            button2 = `<button class="stateButton" onclick="startMachine('${machine.instance_id}','${machine.ip}','${machine.machine_name}')">Start</button>`;
+        }
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${machine.machine_name}</td>
+            <td>${machine.ip}</td>
+            <td>${machine.state}</td>
+            <td>${button2}<button onclick="kill('${machine.instance_id}')">Kill</button></td>
+            <td class="hiddenCells">${machine.instance_id}</td> 
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function setStateButton(button, state){
+    instance_id = button.parentElement.parentElement.getElementsByTagName('td')[4].innerText;
+    ip = button.parentElement.parentElement.getElementsByTagName('td')[1].innerText;
+    machine_name = button.parentElement.parentElement.getElementsByTagName('td')[0].innerText;  
+    if(state == "running"){
+        button.innerText = "Stop";
+        button.onclick = function() { stopMachine(instance_id) };
+    }else{
+        button.innerText = "Start";
+        oldOnClick = button.onclick;
+        button.onclick = function() { startMachine(instance_id, ip, machine_name) };
+    }
+}
+
+function retrieveButtonByClass(line, className){
+    const buttons = line.getElementsByTagName('button');
+    for (let i = 0; i < buttons.length; i++) {
+        if(buttons[i].className == className){
+            return buttons[i];
+        }
+    }
+}
+
+function changeStateButton(line, state){
+    const button = retrieveButtonByClass(line, "stateButton");
+    setStateButton(button, state);
+}
+
+
+async function startMachine(instance_id, ip, machine_name) {
+    const ctf_id = retrieveCtfIdFromDropdown();
+    fetch('/admin/machine/state', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ instance_id, running: true, ctf_id: ctf_id, ip: ip, machine_name: machine_name}),
+    })
+    .then(response => response.text()) 
+    .then(response => {
+        if (response) {
+            const tableBody = document.getElementById('machineTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            console.log("start machine: ", rows)
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if(cells.length > 1){
+                    if (cells[4].innerText === instance_id) {
+                        // Retrieve the table cell that contains the state
+                        cells[2].innerText = "running";
+                        changeStateButton(rows[i], "running");
+                        break;
+                    }
+                }
+            }
+        }
+        else{
+            console.log("Error: trouble in startMachine")
+        }
+    })
+    .catch(error => console.error('Error:', error));
+    
+}
+
+async function stopMachine(instance_id) {
+    const ctf_id = retrieveCtfIdFromDropdown();
+    fetch('/admin/machine/state', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ instance_id, running: false, ctf_id: ctf_id}),
+    })
+    .then(response => response.text()) 
+    .then(response => {
+        if (response) {
+            const tableBody = document.getElementById('machineTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            console.log("stop machine: ", rows)
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if(cells.length > 1){
+                    if (cells[4].innerText === instance_id) {
+                        // Retrieve the table cell that contains the state
+                        cells[2].innerText = "stopped";
+                        changeStateButton(rows[i], "stopped");
+                        break;
+                    }
+                }
+            }
+        }
+        else{
+            console.log("Error: trouble in stopMachine")
+        }
+    })
+    .catch(error => console.error('Error:', error));
+    
+}
+
+async function kill(instance_id) {
+    fetch('/admin/machine/kill', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ instance_id }),
+    })
+    .then(response => response.text()) 
+    .then(response => {
+        if (response) {
+            const tableBody = document.getElementById('machineTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if(cells.length > 1){
+                    if (cells[4].innerText === instance_id) {
+                        // Retrieve the table cell that contains the state
+                        tableBody.deleteRow(i);
+                        break;
+                    }
+                }
+            }
+        }
+        else{
+            console.log("Error: trouble in kill")
+        }
+    })
+    .catch(error => console.error('Error:', error));
+    
+}
+
+async function retrievePwnMachines(ctfId) {
+    const response = await fetch(`/admin/pwnStat?ctf_id=${ctfId}`);
+    const pwns = await response.json();
+    return pwns;
+}
+
+function getDefaulPwnTable(){
+    const tableBody = document.getElementById('pwnTableBody');
+    tableBody.innerHTML = '';
+    let row = document.createElement('tr');
+    row.innerHTML = `
+    <tr class="firstRow">
+        <th>Machine</th>
+        <th>NB Pwned</th>
+        <th>Remaining</th>
+    </tr>`;
+    tableBody.appendChild(row);
+    return tableBody;
+}
+
+// Fill the table with user data
+function fillPwnTable(pwns) {
+    const tableBody = getDefaulPwnTable();
+    pwns.forEach(pwn => {
+        const row = document.createElement('tr');
+        let remaining = Number(nb_users) - Number(pwn.pwnStat);
+        row.innerHTML = `
+            <td>${pwn.machine_name}</td>
+            <td>${pwn.pwnStat}</td>
+            <td>${remaining}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
 
 

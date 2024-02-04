@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     attachDropdownListener();
     attachCheckboxListener();
     updateGraphBySelection(ctfId);
+    listVmInstance(ctfId);
 });
 
 
@@ -21,6 +22,7 @@ function attachDropdownListener() {
             await fetchCtfDetails(ctfId);
             const date = retrieveDateFromDropdown();
             updateGraphBySelection(ctfId, date);
+            listVmInstance(ctfId);
 
         }
     });
@@ -563,3 +565,40 @@ function getRandomColor() {
     return color;
 }
 
+function listVmInstance(ctfID){
+    fetch('/api/machines?ctf_id=' + ctfID)
+    .then(response => response.json())
+    .then(data => {
+        console.log("data", data)
+        fillMachineTable(data);
+    })
+    .catch(error => console.error('Error fetching VM instance data:', error));
+}
+
+
+function getMachineDefaulTable(){
+    const tableBody = document.getElementById('machine-table');
+    tableBody.innerHTML = '';
+    let row = document.createElement('tr');
+    row.innerHTML = `
+    <tr class="firstRow">
+        <th>Challenge</th>
+        <th>IP</th>
+    </tr>`;
+    tableBody.appendChild(row);
+    return tableBody;
+}
+
+// Fill the table with user data
+function fillMachineTable(machines) {
+    const tableBody = getMachineDefaulTable();
+    machines.forEach(machine => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${machine.machine_name}</td>
+            <td>${machine.ip}</td>
+            <td class="hiddenCells">${machine.instance_id}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}

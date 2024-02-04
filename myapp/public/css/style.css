@@ -1,10 +1,16 @@
 body {
-    --main-color: #f6eee3;
+    /* --main-color: #f6eee3;
     --back-color: #ffe2b9;
     --text-color: #1b3c70;
     --secundary-color: #0f6292;
     --third-color: #d7d7d7;
-    --editable-color: #77cd8c;
+    --editable-color: #e0eaf3; */
+    --main-color: #f6eee3;
+    --back-color: #ffe2b9;
+    --text-color: #333333;
+    --secundary-color: #e63946;
+    --third-color: #f1c40f;
+    --editable-color: #eba31e;
     background-color: var(--main-color);
     color: var(--text-color);
 }
@@ -29,7 +35,7 @@ html {
     font-family: 'Courier New', Courier, monospace;
     /* Police style terminal */
     margin: auto;
-    max-width: 1600px;
+    /* max-width: 1600px; */
 }
 
 #header-container {
@@ -37,6 +43,10 @@ html {
     align-items: center;
     align-content: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    background-color: var(--back-color);
+    padding-left: 10%;
+    padding-right: 10%;
 }
 
 /* Styles du header */
@@ -56,7 +66,7 @@ nav ul {
 nav li {
     display: inline-block;
     margin-right: 10px;
-    margin-left: 21%;
+    margin-left: 5%;
     margin-top: 2%;
 }
 
@@ -84,13 +94,21 @@ p {
 
 }
 
-
-/* User table */
-.userTableContainer {
+.tableDiv{
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+
+.multiTableDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 5%;
 }
 
 table {
@@ -119,6 +137,15 @@ th {
     padding-left: 20px;
 }
 
+@media only screen and (max-width: 768px) {
+    .pc {
+        display: none;
+    }
+    .body{
+        margin: 2% 5% 5% 5% !important; 
+    }
+}
+
 
 
 tr:first-child th:last-child { border-top-right-radius: 10px; }
@@ -129,7 +156,10 @@ tr:last-child td:last-child { border-bottom-right-radius: 5px; }
 
 /* Styles du main */
 .body{
-    margin-left: 5rem;
+    max-width: 1000px;
+
+    margin: auto;
+    
 }
 
 h1 {
@@ -137,6 +167,7 @@ h1 {
     font-size: 3rem;
     text-align: center;
     margin-top: 2rem;
+    flex-grow: 2;
 }
 
 h2 {
@@ -163,26 +194,81 @@ button:hover {
     color: var(--editable-color);
 }
 
+.stateButton {
+    margin-right: 20px;
+}
+
 .current{
     border-bottom: solid var(--text-color);
 }
+
+
+
+.container {
+    background-color: var(--back-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: auto;
+
+    border-radius: 10px;
+    max-width: 1000px;
+}
+
+.container h3 {
+    text-align: center;
+    font-size: larger;
+    font-weight: bold;
+    font-style: italic;
+    text-decoration: underline;
+}
+
+.container div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    margin: 1rem;
+
+}
+
+
 
 form {
     background-color: var(--back-color);
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: left;
-    margin: 2rem;
+    margin: 4rem;
     padding: 20px;
     border-radius: 10px;
+}
+
+form div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    margin: 1rem;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+select {
+    background-color: var(--editable-color);
+    color: var(--back-color);
+    font-size: 15px;
+    margin-right: 3em;
+    border-radius: 5px 10px 10px 5px;
+    margin-left: 20px;
 }
 
 input{
     background-color: var(--editable-color);
     color: var(--back-color);
     font-size: 15px;
-    width: 400px;
     margin-right: 3em;
     border-radius: 5px 10px 10px 5px;
     margin-left: 20px;
@@ -193,7 +279,8 @@ input[type="number"] {
 }
 
 input[type="text"] {
-    width: 200px;
+    /* width: 200px; */
+    flex-shrink: 2;
 }
 
 input[type="submit"] {
@@ -208,6 +295,55 @@ input[type="submit"] {
 input[type="submit"]:hover {
     background-color: var(--back-color); 
     color: var(--editable-color);
+}
+
+
+#snackbarContainer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    margin: 30px;
+    z-index: 1000;
+  }
+  
+  .snackbar {
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border: 1px solid var(--text-color);
+    border-radius: 2px;
+    padding: 16px;
+    margin-top: 10px;
+    animation: fadein 0.5s, fadeout 0.5s 4.5s;
+  }
+  
+  @keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+  }
+  
+  @keyframes fadeout {
+    from { bottom: 30px; opacity: 1; }
+    to { bottom: 0; opacity: 0; }
+  }
+
+  .close-btn {
+    margin-left: auto;
+    cursor: pointer;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .close-btn:hover {
+    color: #ccc;
+  }
+
+.hiddenCells {
+    display: none;
+    visibility: "hidden";
 }
 
 
@@ -297,6 +433,7 @@ footer {
     100% { background-position: 0 0; }
 }
 
+
 .rick1{
     position:static;
     top: 40%;
@@ -332,6 +469,7 @@ footer {
     appearance: none;
     display: inline-block;
     border-radius: var(--size);
+    white-space: normal;
     border: 0;
     transition: .35s ease-in-out;
     box-sizing: border-box;

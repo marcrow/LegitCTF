@@ -4,6 +4,27 @@ const path = require('path');
 const dbService = require('../services/dbService'); // Adjust the path as necessary
 const { validateArgs } = require('../middlewares/securityControls');
 const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
+const sseMiddleware = require('../middlewares/sse');
+
+function sendEventsToAll(data, connections) {
+    console.log("caall")
+    if (!connections) {
+        console.log("No connections provided");
+        return;
+    }
+    if (!Array.isArray(connections)) {
+        console.log("Connections is not an array");
+        return;
+    }
+    connections.forEach((res, index) => {
+        try {
+            console.log(`Sending to connection ${index}`);
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (error) {
+            console.error(`Error sending to connection ${index}:`, error);
+        }
+    });
+}
 
 function generateHash(username, password) {
     const crypto = require('crypto');
@@ -80,7 +101,6 @@ router.post("/changeDetails", validateArgs, async (req, res) => {
         if (updatedCtf.affectedRows > 0) {
             res.redirect('/admin');
         } else {
-            console.log(updatedCtf);
             res.status(400).send('Error updating CTF');
         }
     } catch (error) {
@@ -134,7 +154,7 @@ router.post("/user", validateArgs, async (req, res) => {
 });
 
 
-router.post("/resetPassword", validateArgs, async (req, res) => {
+router.post("/resetPassword", validateArgs, sseMiddleware, async (req, res) => {
     try {
         console.log("resetPassword: ", req.body)
         const username = req.body.username;
@@ -147,6 +167,11 @@ router.post("/resetPassword", validateArgs, async (req, res) => {
             res.status(400).send('Error : User doesnt exist');
         }
         if (user.affectedRows > 0) {
+            notifData = {
+                "type": "reset_password",
+                "user": username,
+            }
+            sendEventsToAll(notifData, req.connections);
             res.json({password: password});
         } else {
             console.log(user);
@@ -156,5 +181,101 @@ router.post("/resetPassword", validateArgs, async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+router.get("/machines", validateArgs, async (req, res) => {
+    try {
+        const ctf_id = Number(req.query.ctf_id);
+        if (!ctf_id) {
+            return res.status(400).send('Error: ctf_id is required');
+        }
+        const vmInstances = await dbService.listAllVmInstance(ctf_id);
+        res.json(vmInstances);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+router.post("/machine/state", validateArgs, sseMiddleware, async (req, res) => {
+    try {
+        const instance_id = req.body.instance_id;
+        let running = req.body.running;
+        const ctf_id = req.body.ctf_id;
+        if (instance_id === undefined || ctf_id === undefined || running === undefined) {
+            return res.status(400).send('Error: instance_id, ctf_id and running are required');
+        }
+        if( running != true && running != false){
+            return res.status(400).send('Error: running must be true or false');
+        }
+        if (running == true){
+            running = 1;
+        } else {
+            running = 0;
+        }
+        const response = await dbService.changeVmInstanceStatus(instance_id, running);
+        if (response.affectedRows > 0) {
+            let notifData;
+            if (running == 1){
+                const machine_name = req.body.machine_name;
+                const ip = req.body.ip;
+                notifData = {
+                    "type": "new_instance",
+                    "machine_name": machine_name,
+                    "ip": ip,
+                    "instance_id": instance_id,
+                    "ctf_id": ctf_id
+                }
+            }else{
+                notifData = {
+                    "type": "logout",
+                    "ctf_id": ctf_id,
+                    "instance_id": instance_id,
+                }
+            }
+            console.log("notifData: ", notifData)
+            sendEventsToAll(notifData, req.connections);
+            res.status(200).send('OK');
+        } else {
+            res.status(400).send('Error updating VM state');
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+router.post("/machine/kill", validateArgs, async (req, res) => {
+    try {
+        const instance_id = req.body.instance_id;
+        if (!instance_id) {
+            return res.status(400).send('Error: instance_id is required');
+        }
+        const response = await dbService.logoutVmInstance(instance_id);
+        if (response.affectedRows > 0) {
+            res.status(200).send('OK');
+        } else {
+            res.status(400).send('Error killing VM');
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+router.get("/pwnStat", validateArgs, async (req, res) => {
+    try {
+        const ctf_id = Number(req.query.ctf_id);
+        if (!ctf_id) {
+            return res.status(400).send('Error: ctf_id is required');
+        }
+        const machines = await dbService.getMachineList(ctf_id);
+        for (const machine of machines){
+            const result = await dbService.getPwnStat(ctf_id, machine.machine_name);
+            machine.pwnStat = result;
+        }
+        console.log("machines: ", machines);
+        res.json(machines);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 
 module.exports = router;

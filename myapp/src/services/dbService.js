@@ -217,7 +217,97 @@ async function getCtfById(ctfId) {
     }
 }
 
+async function listVMInstance(ctf_id) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
 
+        const query = `
+            SELECT 
+                instance_id, machine_name, ip, is_running
+            FROM 
+                ctf_vm_instance
+            WHERE 
+                ctf_id = ? AND is_running = True;
+        `;
+        const rows = await conn.query(query, [ctf_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in listVMInstance:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function listAllVmInstance(ctf_id) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                instance_id, machine_name, ip, is_running
+            FROM 
+                ctf_vm_instance
+            WHERE 
+                ctf_id = ?;
+        `;
+        const rows = await conn.query(query, [ctf_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in listAllVmInstance:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function changeVmInstanceStatus(instance_id, status) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            UPDATE 
+                ctf_vm_instance
+            SET
+                is_running = ?
+            WHERE 
+                instance_id = ?;
+        `;
+        const rows = await conn.query(query, [status, instance_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in changeVmInstanceStatus:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function getMachineWithNoInstance(ctf_id) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT
+                machine_name
+            FROM   
+                ctfs_machines
+            WHERE   
+                ctf_id = ? AND machine_name NOT IN (SELECT machine_name FROM ctf_vm_instance WHERE ctf_id = ?);
+        `;
+        const rows = await conn.query(query, [ctf_id, ctf_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in getMachineWithNoInstance:', err);
+        throw err; 
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
 
 //------------------ VMInstance ------------------//
 async function getInstanceId(ctf_id, machine_name, ip) {
@@ -328,6 +418,24 @@ async function addVmInstanceCookie(instanceId , cookieValue) {
         return rows;
     } catch (err) {
         console.error('Error in addVmInstanceCookie:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+async function logoutVmInstance(instance_id){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            DELETE FROM ctf_vm_instance WHERE instance_id = ?;
+        `;
+        const rows = await conn.query(query, [instance_id]);
+        return rows;
+    } catch (err) {
+        console.error('Error in logout:', err);
         throw err;
     } finally {
         if (conn) conn.release(); // release to pool
@@ -666,22 +774,60 @@ async function resetPassword(username, password){
     }
 }
 
-async function logout(instance_id){
+
+async function getPwnStat(ctfId, machine_name){
     let conn;
     try {
         conn = await pool.getConnection();
-
+        console.log("ctfId: ", ctfId);
+        console.log("machine_name: ", machine_name);
         const query = `
-            DELETE FROM ctf_vm_instance WHERE instance_id = ?;
+            SELECT 
+                COUNT(*) AS count
+            FROM 
+                pwned
+            WHERE 
+                ctf_id = ? AND ctf_machine_name = ?
+            GROUP BY
+                ctf_id;
         `;
-        const rows = await conn.query(query, [instance_id]);
-        return rows;
+        const rows = await conn.query(query, [Number(ctfId), machine_name]);
+        console.log("rows: ", rows);
+        if (rows.length > 0) {
+            return parseInt(rows[0]['count']);
+        } else {
+            return 0;
+        }
     } catch (err) {
-        console.error('Error in logout:', err);
+        console.error('Error in getPwnStat:', err);
         throw err;
     } finally {
         if (conn) conn.release(); // release to pool
     }
 }
 
-module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf, getCtfUser, testIfUserExists, createUser, addUserToCtf, resetPassword};
+async function getMachineList(ctfId){
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        const query = `
+            SELECT 
+                machine_name
+            FROM 
+                ctfs_machines
+            WHERE 
+                ctf_id = ?;
+        `;
+        const rows = await conn.query(query, [ctfId]);
+        return rows;
+    } catch (err) {
+        console.error('Error in getMachineList:', err);
+        throw err;
+    } finally {
+        if (conn) conn.release(); // release to pool
+    }
+}
+
+
+module.exports = { testConnection, getCompromisedData, getPwnedInfo, getCtfById, listCtf, listUsers, getPwnedInfoByDate, getLastPwn, getInstanceId, addVmInstanceCookie, getCookie, getDefaultPassword, instanceExist, createInstance, checkUserPassword, pwn, updateCookie, getMachineName, checkAdminPassword, updateCtf, getCtfUser, testIfUserExists, createUser, addUserToCtf, resetPassword, listVMInstance, getMachineWithNoInstance, logoutVmInstance, listAllVmInstance, changeVmInstanceStatus, getMachineList, getPwnStat};

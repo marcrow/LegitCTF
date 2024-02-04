@@ -9,9 +9,22 @@ const sseMiddleware = require('../middlewares/sse');
 const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
 
 function sendEventsToAll(data, connections) {
-    if (!connections) return;
-    connections.forEach((res) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    console.log("caall")
+    if (!connections) {
+        console.log("No connections provided");
+        return;
+    }
+    if (!Array.isArray(connections)) {
+        console.log("Connections is not an array");
+        return;
+    }
+    connections.forEach((res, index) => {
+        try {
+            console.log(`Sending to connection ${index}`);
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (error) {
+            console.error(`Error sending to connection ${index}:`, error);
+        }
     });
 }
 
@@ -34,7 +47,7 @@ router.get('/test', sseMiddleware, async (req, res) => {
     }
 });
 
-router.post('/firstAuth/', validateArgs, async (req, res) => {
+router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
     try {
         const machine_name = req.body.machine_name;
         const default_password = req.body.default_password;
@@ -55,13 +68,44 @@ router.post('/firstAuth/', validateArgs, async (req, res) => {
         const new_cookie = createCookie();
         const result = await dbService.createInstance(ctf_id, machine_name, ip, new_cookie);
         const instance = result[0].instance_id;
-        sendEventsToAll("new instance of " + machine_name + " created at " + ip);
+        notifData = {
+            "type": "new_instance",
+            "machine_name": machine_name,
+            "ip": ip,
+            "instance_id": instance,
+            "ctf_id": ctf_id
+        }
+        console.log("notifData: ", notifData)
+        sendEventsToAll(notifData, req.connections);
         res.status(200).json({ instance, new_cookie });
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
+router.post("/logout", validateArgs, checkVMCookie, sseMiddleware, async (req, res) => {
+    try {
+        const instance_id = req.body.instance_id;
+        const ctf_id = req.body.ctf_id;
+        if (!instance_id || !ctf_id) {
+            return res.status(400).send('Error: instance_id and ctf_id  are required');
+        }
+
+        const response = await dbService.logoutVmInstance(instance_id);
+        if(response.affectedRows == 0){
+            return res.status(400).send('Error: already logged out');
+        }
+        notifData = {
+            "type": "logout",
+            "ctf_id": ctf_id,
+            "instance_id": instance_id,
+        }
+        sendEventsToAll(notifData, req.connections);
+        res.status(200).send('OK');
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 router.post('/getInstanceId/', validateArgs, async (req, res) => {
@@ -121,6 +165,19 @@ router.post('/pwn', validateArgs, checkVMCookie, sseMiddleware, async (req, res)
         if(response.affectedRows == 0){
             return res.status(400).send('Error: already pwned');
         }
+        const nb_pwns = await dbService.getPwnStat(ctf_id, ctf_machine_name);
+        const users = await dbService.listUsers(ctf_id);
+        const nb_users = users.length;
+        console.log("nb_pwns: ", nb_pwns)
+        console.log("nb_users: ", nb_users)
+        if (nb_pwns >= nb_users){
+            notifData = {
+                "type": "totally_pwned",
+                "machine": ctf_machine_name,
+                "ctf_id": ctf_id,
+            }
+            sendEventsToAll(notifData, req.connections);
+        }
         notifData = {
             "type": "pwn",
             "user": user.username,
@@ -146,29 +203,6 @@ router.post('/pwn', validateArgs, checkVMCookie, sseMiddleware, async (req, res)
     }
 });
 
-router.post("/logout", validateArgs, checkVMCookie, sseMiddleware, async (req, res) => {
-    try {
-        const instance_id = req.body.instance_id;
-        const ctf_id = req.body.ctf_id;
-        if (!instance_id || !ctf_id) {
-            return res.status(400).send('Error: instance_id and ctf_id are required');
-        }
-
-        const response = await dbService.logout(instance_id);
-        if(response.affectedRows == 0){
-            return res.status(400).send('Error: already logged out');
-        }
-        notifData = {
-            "type": "logout",
-            "ctf_id": ctf_id,
-            "machine": instance_id,
-        }
-        sendEventsToAll(notifData, req.connections);
-        res.status(200).send('OK');
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
 
 
 module.exports = router;
