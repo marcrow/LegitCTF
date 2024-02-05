@@ -53,3 +53,6 @@ Guidelines for contributing to the project.
 ## License
 
 Information about the project's license.
+
+## List of js package 
+npm install moment chart.js chartjs-adapter-moment

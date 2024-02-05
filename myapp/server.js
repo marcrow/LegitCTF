@@ -20,6 +20,19 @@ app.use(express.static('public')); // Serve static files from the public directo
 
 app.use(express.static('views'));
 
+// Serve Chart.js
+app.get('/scripts/chart.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'node_modules', 'chart.js', 'dist', 'chart.umd.js'));
+  });
+  
+  // Serve Moment.js
+  app.get('/scripts/moment.min.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'node_modules', 'moment', 'min', 'moment.min.js'));
+  });
+
+  app.get('/scripts/chartjs-adapter-moment.min.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'node_modules', 'chartjs-adapter-moment', 'dist', 'chartjs-adapter-moment.min.js'));
+  });
 app.use(express.json());
 
 function generateSessionSecret() {
@@ -42,7 +55,7 @@ const certificate = fs.readFileSync('config/cert.pem', 'utf8');
 
 const credentials = { key: privateKey, cert: certificate };
 
-app.get('/', async (req, res) => {
+app.get('/db', async (req, res) => {
     try {
         const isConnected = await dbService.testConnection();
         res.send(`Connected to MariaDB successfully! ${isConnected}`);
@@ -64,7 +77,7 @@ app.use('/admin',adminAccess, adminRouter);
 
 
 
-app.get('/chart', async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         // const data = await dbService.getCompromisedData(); // Fetch data for chart
         res.sendFile(path.join(__dirname, 'src/views/chart.html')); // Send the HTML file
