@@ -1,0 +1,5 @@
+- name: Configurer le nouvel utilisateur et les paramètres de sécurité
+  hosts: all
+  become: yes
+  roles:
+    - roles/config_users
