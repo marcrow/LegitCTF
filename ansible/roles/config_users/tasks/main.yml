@@ -1,0 +1,42 @@
+- name: Create Ansible user
+  user:
+    name: "{{ ansible_user_name }}"
+    password: "{{ 'ansible_passwd' | password_hash('sha512') }}"
+    shell: /bin/bash
+    create_home: no
+
+- name: Provides sudo access to the Ansible user
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^{{ ansible_user_name }}"
+    line: "{{ ansible_user_name }} ALL=(ALL) NOPASSWD: ALL"
+    validate: visudo -cf %s
+
+- name: Add the public key to the authorized_keys file
+  authorized_key:
+    user: "{{ ansible_user_name }}"
+    state: present
+    key: "{{ lookup('file', '../../secrets/ctf.pub') }}"
+
+- name: Bloquer l'authentification SSH en tant que root
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+    state: present
+  notify: restart sshd
+
+- name: Upload the vm client directory to the vm
+  copy:
+    src: ../../../vm_client/
+    dest: "/root/"
+    owner: "{{ ansible_user_name }}"
+    group: "{{ ansible_user_name }}"
+    mode: '0755'
+
+- name: Redémarrer le service SSH pour appliquer les modifications
+  service:
+    name: ssh
+    state: restarted
+  when: ansible_service_mgr is defined
