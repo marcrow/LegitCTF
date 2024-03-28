@@ -9,7 +9,6 @@ const sseMiddleware = require('../middlewares/sse');
 const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
 
 function sendEventsToAll(data, connections) {
-    console.log("caall")
     if (!connections) {
         console.log("No connections provided");
         return;

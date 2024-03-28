@@ -105,7 +105,7 @@ INSERT INTO users_ctfs (user_id, ctf_id, attempt)
 VALUES (2, 2, 1); 
 
 INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
-VALUES (1,'MachineAlpha', 50, 'Hard', "superPassword");
+VALUES (1,'Crow', 50, 'Hard', "superPassword");
 INSERT INTO ctfs_machines (ctf_id, machine_name, nb_point, difficulty, default_password)
 VALUES (1,'Rabbit', 50, 'Hard', 'AnotherPassword');
 

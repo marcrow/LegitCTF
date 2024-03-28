@@ -25,3 +25,5 @@ chmod 600 $skey
 echo "Restrict the access to the certificate file."
 chmod 644 $pkey
 echo "Done - The certificate is available in the following directory: ${cert_dir}"
+
+exit 0

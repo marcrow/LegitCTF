@@ -216,6 +216,7 @@ function machineAccess(req, res, next) {
     }
 }
 
+
 function controlAdminSession(req, res, next) {
     if(req.path == "/login" || req.path == "/logout" || req.path == "/admin/login"){
         next();
@@ -233,7 +234,7 @@ function controlAdminSession(req, res, next) {
 }
 
 function controlAdminNetwork(req, res, next) {
-    var adminNetwork = "127.0.0.1/24"
+    var adminNetwork = process.env.ADMIN_NETWORK
     var ipnumber = utils.getClientIPv4(req);
     if (checkIfIpIsAllowed(ipnumber, adminNetwork))
     {

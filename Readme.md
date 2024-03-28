@@ -23,11 +23,11 @@ As it works on docker you should install docker on your machine. You should inst
 5. Create your own certificate for ssl.
 To generate self signed certificate on linux :
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=ctf"
-6. Place these files is myapp/config/
-mv key.pem myapp/config
-mv cert.pem myapp/config
+6. Place these files is myapp/certs/
+mv key.pem myapp/certs
+mv cert.pem myapp/certs
 7. Set correct rights 
-chmod 600 myapp/config/*.pem
+chmod 600 myapp/certs/*.pem
 
 
 ### Vulnerable machine

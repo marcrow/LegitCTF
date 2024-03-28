@@ -1,0 +1,8 @@
+- name: Upload the vm client directory to the vm
+  copy:
+    src: ../../../vm_client/
+    dest: "/root/"
+    owner: "{{ ansible_user_name }}"
+    group: "{{ ansible_user_name }}"
+    mode: '0755'
+

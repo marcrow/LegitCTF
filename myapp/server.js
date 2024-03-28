@@ -50,8 +50,8 @@ app.use(session({
     saveUninitialized: true
   }));
 
-const privateKey = fs.readFileSync('config/key.pem', 'utf8');
-const certificate = fs.readFileSync('config/cert.pem', 'utf8');
+const privateKey = fs.readFileSync('certs/key.pem', 'utf8');
+const certificate = fs.readFileSync('certs/cert.pem', 'utf8');
 
 const credentials = { key: privateKey, cert: certificate };
 

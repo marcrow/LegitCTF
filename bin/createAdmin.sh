@@ -19,3 +19,5 @@ source ../myapp/.env
 # mysql -u $DB_USER -p$DB_PASSWORD -h $DB_HOST -D $DB_NAME -e "$sql"
 docker exec -it ctf_esgi_db_1 mariadb -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e "${sql}"
 echo "Return code $?"
+
+exit 0

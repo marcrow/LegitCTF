@@ -1,0 +1,79 @@
+- name: current directory
+  
+  delegate_to: localhost
+  shell: "pwd"
+  register: current_dir
+
+- name: debug current directory
+  debug:
+    var: current_dir
+
+- name: retrieve DB_USER value from .env file
+  shell: "grep DB_USER ../../myapp/.env | cut -d '=' -f2"
+  register: db_user
+
+- name: debug current directory
+  debug:
+    var: db_user
+
+- name: Fail if DB_USER  variable is not set
+  fail:
+    msg: "DB_USER is not set in .env file"
+  when: db_user.stdout == ""
+
+- name: load environment variables used by db and webserver
+  set_fact:
+    env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
+  delegate_to: localhost
+
+- name: Debug env_vars_keys
+  debug:
+    var: env_vars_keys
+
+- name: load environment variables used by db and webserver
+  set_fact:
+    env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
+  delegate_to: localhost
+
+- name: Debug env_vars_keys
+  debug:
+    var: env_vars_keys
+
+- name: Test if the db is reachable
+  delegate_to: localhost
+  docker_container:
+    name: ctf_esgi_db_1
+    command: >
+      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SHOW DATABASES;"
+    state: started
+  register: db_test_result
+
+- name: Test if the machine name exists in the db
+  delegate_to: localhost
+  docker_container:
+    name: ctf_esgi_db_1
+
+    command: >
+      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SELECT COUNT(*) as Exist FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
+    state: started
+  register: group_exist_result
+
+- name: Retrieve machine default password
+  delegate_to: localhost
+  docker_container:
+    name: ctf_esgi_db_1
+    command: >
+      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
+    state: started
+  register: default_password_result
+
+- name: Test if the default password is not empty
+  delegate_to: localhost
+  fail:
+    msg: "The default password is empty"
+  when: default_password_result.stdout == ""
+
+- name: display the default password
+  delegate_to: localhost
+  debug:
+    msg: "The default password is {{ default_password_result.stdout }}"
