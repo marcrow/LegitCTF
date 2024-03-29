@@ -14,6 +14,12 @@ He will then be asked for his password to authenticate it. The database is then 
 - [License](#license)
 
 ## Installation
+### Prerequisite
+docker-compose
+ansible
+ansible-playbook
+
+
 ### CTF server side
 As it works on docker you should install docker on your machine. You should install Ansible to manage your ctf machines.
 1. I use ssh to develop quickly my container. If you deploy it on prod environment remove it in the Dockerfile

@@ -2,9 +2,9 @@ services:
   db:
     image: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: b1x+ee7VqT5zHRVWlrfQvHdjYyOm+Xu0hy7k1O0Wp+Q=
+      MYSQL_ROOT_PASSWORD: I4jVfl9hDBUK+6NMiYAr53cLpCl0Pr/eCc/8ZHQyzD0=
       MARIADB_USER: ctf-server
-      MARIADB_PASSWORD: test3
+      MARIADB_PASSWORD: SuperPass
       MARIADB_DATABASE: esgi_db
     volumes:
       - db_data:/var/lib/mysql

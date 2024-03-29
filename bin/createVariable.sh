@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Set a lot of variable in the .env file and the docker-compose file
+# root password for the database
+# password for the mariadb user
+# port for the frontend
+# network address used by vm to communicate with the api
+
 
 
 
@@ -20,7 +26,6 @@ createVariable() {
     operator="="
     # escape the special characters
     value=$(echo $2 | sed 's/[\*\.&]/\\&/g')
-    echo $value
     # Test if the file exists
     if [ ! -f $3 ]; then
         error "The file $3 does not exist"
@@ -84,7 +89,7 @@ network_address=$response
 #test if the network address is a valid ip address with a subnet mask
 if ! [[ $network_address =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]]; then
     network_address="192.168.56.0/24"
-    echo "Invalid network address, using default value: $network_address"
+    info "Invalid network address, using default value: $network_address"
 fi
 
 title2 "Setting the environment variables"
