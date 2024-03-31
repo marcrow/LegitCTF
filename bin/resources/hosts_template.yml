@@ -1,0 +1,7 @@
+all:
+    vars_files:
+      - ./docker.yml
+    vars:
+      ctf_id: $ctf_id
+      ctf: $ctf_name
+    hosts:

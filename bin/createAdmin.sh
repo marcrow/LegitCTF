@@ -50,7 +50,7 @@ if [ -z "$db_container" ] || [ -z "$app_container" ]; then
     error "The db_container or app_container is not set"
 fi
 
-
+echo "docker exec -it $db_container mariadb -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e ${sql}"
 # mysql -u $DB_USER -p$DB_PASSWORD -h $DB_HOST -D $DB_NAME -e "$sql"
 docker exec -it $db_container mariadb -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e "${sql}"
 
@@ -59,3 +59,4 @@ if [ $? -ne 0 ]; then
 else 
     success "The admin has been created successfully"
 fi
+                                                            

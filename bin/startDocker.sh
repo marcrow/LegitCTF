@@ -18,7 +18,7 @@ warning "This operation will stop and remove all the ctf containers"
 info "All your data inside these containers will be lost"
 ask "Do you want to continue? (y/n) "
 title2 "Stop docker containers"
-docker-compose stop
+docker-compose down -v
 title2 "Try to remove older docker containers"
 docker-compose rm 
 title2 "Build the docker containers"
