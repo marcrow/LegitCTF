@@ -1,0 +1,19 @@
+all:
+    vars_files:
+      - ./docker.yml
+    vars:
+      ctf_id: 2
+      ctf: esgi-2024
+    hosts:
+      Crow_10:
+        ansible_host: 192.168.56.10
+        machine_name: Crow
+        flag_location: /root
+      Crow_11:
+        ansible_host: 192.168.56.11
+        machine_name: Crow
+        flag_location: /root
+      Impossible_12:
+        ansible_host: 192.168.56.12
+        machine_name: Impossible
+        flag_location: /root

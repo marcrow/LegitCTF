@@ -1,0 +1,100 @@
+- name: Debug hostvars[inventory_hostname]['ansible_host']
+  debug:
+    msg: "The host's IP address is {{ hostvars[inventory_hostname]['ip'] }}"
+
+- name: Initialize skip_role
+  set_fact:
+    skip_role: false
+
+
+- name: Check if any interface has the ansible_host IP
+  set_fact:
+    skip_role: true
+  loop: "{{ ansible_facts | dict2items }}"
+  when: 
+    - "item.value is mapping"
+    - "'ipv4' in item.value"
+    - "item.value.ipv4.address is defined"
+    - "item.value.ipv4.address == hostvars[inventory_hostname]['ip']"
+  ignore_errors: yes
+  no_log: true
+
+- name: Calculate the host-only IP range
+  set_fact:
+    host_only_ip_range: "{{ vm_host_ip | regex_replace('\\.[0-9]+$', '.') }}"
+  when: not skip_role
+
+- name: Get the default interface
+  set_fact:
+    ansible_interface: "{{ ansible_default_ipv4.interface }}"
+  when: not skip_role
+
+- name: Display the default interface
+  debug:
+    msg: "L'interface par défaut est {{ ansible_interface }}" 
+  when: not skip_role  
+  
+
+- name: Run dhclient on all interfaces except the Ansible interface
+  ansible.builtin.shell:
+    cmd: dhclient -r {{ item }}; dhclient {{ item }}
+  loop: "{{ ansible_interfaces }}"
+  when: item != ansible_interface
+  become: true
+  ignore_errors: yes
+  when: not skip_role
+
+- name: Collect network facts
+  ansible.builtin.setup:
+    gather_subset:
+      - network
+  when: not skip_role
+
+- name: Identify the host-only interface based on the IP range
+  set_fact:
+    host_only_interface: "{{ item }}"
+  loop: "{{ ansible_interfaces }}"
+  when: 
+    - "ansible_facts[item]['ipv4'] is defined"
+    - "ansible_facts[item]['ipv4']['address'].startswith(host_only_ip_range)"
+  when: not skip_role
+
+- name: Display the host-only interface
+  debug:
+    msg: "L'interface host-only est {{ host_only_interface }}"
+  when: not skip_role
+
+- name: Display the ansible_host
+  debug:
+    msg: "L'adresse IP de l'hôte est {{ ip }}"
+  when: not skip_role
+
+- name: suppres all ip configured on the host-only interface
+  ansible.builtin.command:
+    cmd: ip addr flush dev "{{ host_only_interface }}"
+  when: not skip_role
+
+- name: Configure the host-only interface
+  ansible.builtin.command:
+    cmd: /root/network.sh "{{ host_only_interface }}" "{{ ip }}" 255.255.255.0
+  when: not skip_role
+
+- name: Test the host-only interface
+  ansible.builtin.ping:
+    data: "ping"
+  delegate_to: "{{ vm_host_ip }}"
+
+
+- name: kill dhclient
+  ansible.builtin.shell: "sudo pkill dhclient"
+  when: not skip_role
+  ignore_errors: yes
+
+- name: Stop and disable isc-dhcp-client
+  ansible.builtin.systemd:
+    name: isc-dhcp-client
+    state: stopped
+    enabled: no
+  when: not skip_role
+  ignore_errors: yes
+

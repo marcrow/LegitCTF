@@ -19,22 +19,18 @@ docker-compose
 ansible
 ansible-playbook
 
+On your hypervisor, a host only network configured (with dhcp, i think it is configured by default on VirtualBox).
+This network will be use as secured network to communicate with the ctf API.
+
 
 ### CTF server side
 As it works on docker you should install docker on your machine. You should install Ansible to manage your ctf machines.
-1. I use ssh to develop quickly my container. If you deploy it on prod environment remove it in the Dockerfile
-2. In the docker-compose change MYSQL_ROOT_PASSWORD and MARIADB_PASSWORD password. Set a strong password
-3. In myapp/.env set the correct password in DB_PASSWORD
-4. Create your own init.sql to populate your db (may i will create a script to do it)
-5. Create your own certificate for ssl.
-To generate self signed certificate on linux :
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=ctf"
-6. Place these files is myapp/certs/
-mv key.pem myapp/certs
-mv cert.pem myapp/certs
-7. Set correct rights 
-chmod 600 myapp/certs/*.pem
 
+```bash
+chmod +x install.sh
+./install.sh
+#Follow instruction
+```
 
 ### Vulnerable machine
 1. Add the content of vm_client directory on your machines.
@@ -45,7 +41,33 @@ for example 127.0.0.1 ctf
 chmod +x flag.sh
 ./flag.sh -f
 
+### How to add new machines
+Machine are considered as challenge. A VM isn't a machine but an instance of a machine.
+Before to add new instance inside a ctf you should define a machine. You can link multiple instance to a machine.
+To create a new machine you can use bin/createMachine.sh.
 
+
+### How to create new instance
+An instance is a VM, but a VM can be multiple instance of different machine/challenge to able to have differeznt level opf flag. For the moment, only root flag works.
+First of all you should initialize instance inside ansible using the installation script or createInstance.sh. It is really simple :)
+
+When you have a vm to pwn, and you want to add it inside the environment, you have to configure it to do it. 
+To do it you should have at least to network interfaces for this vm. One bridge for example, used to be accessible by participant, and another one (host only reccomended)
+to communicate with the ctf server. 
+The Ansible script will configure everything for you, but there are a few things you need to know to make it work.
+1. The ip from an another interface (bridge one for example)
+2. A username + password with root privilege on the system
+3. The name of the instance you want to configfure
+4. A SSH server installed and running
+
+Then run the following command:
+ansible-playbook -l <instance_name> -u <username> --ask-pass  playbooks/init.yml -i ./inventory/<host_file> -e 'ansible_host=<VM_IP>'  
+The <instance_name> shall be found in ansible/inventory/<host_file>. It is the name of the instance you want to configure.
+
+
+### How to enroll new instane
+You have to enroll your machine to register them as accessible instance of a machine.
+The enroll process include a cleaning process to avoid to have unwanted log or history on the system.
 
 
 ## Usage
@@ -62,3 +84,26 @@ Information about the project's license.
 
 ## List of js package 
 npm install moment chart.js chartjs-adapter-moment
+
+
+## To do
+- custom privilege of flags.sh
+- manage vm with ansible via hypervisor tools
+
+- Clean solution to solve problem with mise when requests package is missing.
+tmp solution : 
+/home/marc-antoine/.local/pipx/venvs/ansible-core/bin/python3 
+Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import pip
+>>> 
+>>> def install(package):
+...     if hasattr(pip, 'main'):
+...         pip.main(['install', package])
+...     else:
+...         pip._internal.main(['install', package])
+... 
+>>> # Example
+>>> if __name__ == '__main__':
+...     install('requests')
+... 

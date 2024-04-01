@@ -1,7 +1,5 @@
 - name: Configurer le nouvel utilisateur et les paramètres de sécurité
   hosts: all
-  vars_files:
-    - ctf_vars.yml
-  become: yes
+  become: no
   roles:
     - roles/ctf_enroll

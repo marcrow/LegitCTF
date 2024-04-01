@@ -3,7 +3,7 @@
     name: "{{ ansible_user_name }}"
     password: "{{ 'ansible_passwd' | password_hash('sha512') }}"
     shell: /bin/bash
-    create_home: no
+    create_home: yes
 
 - name: Provides sudo access to the Ansible user
   lineinfile:
@@ -19,21 +19,20 @@
     state: present
     key: "{{ lookup('file', '../../secrets/ctf.pub') }}"
 
-- name: Bloquer l'authentification SSH en tant que root
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^PermitRootLogin"
-    line: "PermitRootLogin no"
-    state: present
-  notify: restart sshd
-
-- name: Upload the vm client directory to the vm
-  copy:
-    src: ../../../vm_client/
-    dest: "/root/"
+- name: Set correct rights on the authorized_keys file
+  file:
+    path: "/home/{{ ansible_user_name }}/.ssh/authorized_keys"
     owner: "{{ ansible_user_name }}"
     group: "{{ ansible_user_name }}"
-    mode: '0755'
+    mode: '0644'
+
+- name: Enable the key-based authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: present
+  notify: restart sshd
 
 - name: Redémarrer le service SSH pour appliquer les modifications
   service:

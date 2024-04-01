@@ -84,6 +84,10 @@ function check_hour() {
 title "Create a new ctf"
 title1 "Configure the ctf"
 
+
+# Check if containers are up
+containers_is_up
+
 # Read ctf name from user
 ask "Enter the ctf name: "
 ctf_name=$response
@@ -92,6 +96,7 @@ ctf_name=$response
 if [ -z "$ctf_name" ]; then
     error "The ctf name cannot be empty"
 fi
+
 
 sql="SELECT ctf_name FROM ctfs WHERE ctf_name='$ctf_name';"
 sql_request "$sql"
@@ -170,6 +175,8 @@ ansible_inventory="${dir}/../ansible/inventory/${ctf_name}_hosts.yml"
 ansible_inventory_ansible="./inventory/${ctf_name}_hosts.yml"
 ansible_template="${dir}/resources/hosts_template.yml"
 
+
+
 if [ -f $ansible_inventory ]; then
     info "The file $ansible_inventory already exists"
     echo "Skip the creation of the ansible inventory file"
@@ -199,6 +206,20 @@ else
     # Test if the ctf_id has been replaced
     if ! grep -q "ctf_id: ${ctf_id}" $ansible_inventory; then
         error "The ctf_id has not been replaced"
+    fi
+
+    source "${dir}/../app/.env"
+    host=$(echo $MACHINE_NETWORK | cut -d "." -f1-3)
+    host="$host.1"
+    ask "Enter the vm host ip - used by vm to communicate with the ctf server (auto: $host): "
+    if [ ! -z "$response" ]; then
+        vm_host_ip=$response
+    else
+        vm_host_ip=$host
+    fi
+    sed -i "s/vm_host_ip: .*/vm_host_ip: $vm_host_ip/g" $ansible_inventory
+    if ! grep -q "vm_host_ip: ${vm_host_ip}" $ansible_inventory; then
+        error "The vm_host_ip has not been replaced"
     fi
 
     success "The ansible inventory ($ctf_name_hosts.yml) file has been created successfully"
@@ -248,3 +269,8 @@ else
         fi
     fi
 fi
+
+title1 " Create participant for the ctf"
+echo "Connect to the ctf platform as admin and create a new user"
+source "${dir}/../app/.env"
+echo "https://127.0.0.1:$PORT/admin" 

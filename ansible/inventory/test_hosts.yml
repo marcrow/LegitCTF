@@ -1,0 +1,18 @@
+all:
+    vars_files:
+      - ./docker.yml
+    vars:
+      ctf_id: 3
+      ctf: test
+      vm_host_ip: 192.168.56.1
+    hosts:
+      Crow_10:
+        ansible_host: 192.168.56.10
+        ip: 192.168.56.10
+        machine_name: Crow
+        flag_location: /root
+      Crow_11:
+        ansible_host: 192.168.56.11
+        ip: 192.168.56.11
+        machine_name: Crow
+        flag_location: /root

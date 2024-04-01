@@ -1,72 +1,102 @@
-- name: current directory
-  
-  delegate_to: localhost
-  shell: "pwd"
-  register: current_dir
+# - name: read the docker-compose file
+#   slurp:
+#     src: ./roles/ctf_enroll/files/docker-compose.yml
+#   register: docker_compose_content
 
-- name: debug current directory
-  debug:
-    var: current_dir
+# - name: load variables from docker-compose file
+#   set_fact:
+#     docker_compose_vars: "{{ docker_compose_content['content'] | b64decode | from_yaml }}"
+
+# - name: load variables from docker-compose file
+#   set_fact:
+#     docker_compose_vars: "{{ lookup('file', 'docker-compose.yml') | from_yaml }}"
+
+
 
 - name: retrieve DB_USER value from .env file
-  shell: "grep DB_USER ../../myapp/.env | cut -d '=' -f2"
+  shell: "grep 'DB_USER' {{ playbook_dir }}/../roles/ctf_enroll/files/linkEnv | cut -d ':' -f2"
   register: db_user
+  delegate_to: localhost
 
 - name: debug current directory
   debug:
     var: db_user
 
-- name: Fail if DB_USER  variable is not set
+- name: Fail if DB_PASSWORD  variable is not set
   fail:
-    msg: "DB_USER is not set in .env file"
+    msg: "DB_PASSWORD is not set in .env file"
   when: db_user.stdout == ""
 
-- name: load environment variables used by db and webserver
-  set_fact:
-    env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
+- name: retrieve DB_PASSWORD value from .env file
+  shell: "grep 'DB_PASSWORD' {{ playbook_dir }}/../roles/ctf_enroll/files/linkEnv | cut -d ':' -f2"
+  register: db_password
   delegate_to: localhost
 
-- name: Debug env_vars_keys
+- name: debug current directory
   debug:
-    var: env_vars_keys
+    var: db_password
 
-- name: load environment variables used by db and webserver
-  set_fact:
-    env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
-  delegate_to: localhost
+- name: Fail if DB_PASSWORD  variable is not set
+  fail:
+    msg: "DB_PASSWORD is not set in .env file"
+  when: db_password.stdout == ""
 
-- name: Debug env_vars_keys
-  debug:
-    var: env_vars_keys
+# - name: load environment variables used by db and webserver
+#   set_fact:
+#     env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
+#   delegate_to: localhost
 
-- name: Test if the db is reachable
-  delegate_to: localhost
-  docker_container:
-    name: ctf_esgi_db_1
-    command: >
-      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SHOW DATABASES;"
-    state: started
-  register: db_test_result
+# - name: Debug env_vars_keys
+#   debug:
+#     var: env_vars_keys
 
-- name: Test if the machine name exists in the db
-  delegate_to: localhost
-  docker_container:
-    name: ctf_esgi_db_1
+# - name: load environment variables used by db and webserver
+#   set_fact:
+#     env_vars: "{{ lookup('env', 'DB_USER', 'DB_PASSWORD') }}"
+#   delegate_to: localhost
 
-    command: >
-      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SELECT COUNT(*) as Exist FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
-    state: started
-  register: group_exist_result
+# - name: Debug env_vars_keys
+#   debug:
+#     var: env_vars_keys
+
+# - name: Test if the db is reachable
+#   delegate_to: localhost
+#   command: >
+#     docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -e "SHOW DATABASES;"
+#   register: db_test_result
+
+
+
+
+# - name: Test if the machine name exists in the db
+#   delegate_to: localhost
+#   command: >
+#     docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -e "SELECT COUNT(*) as Exist FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
+#   register: group_exist_result
+  
+# - name: Debug group_exist_result
+#   debug:
+#     var: group_exist_result
+
+# - name: Retrieve machine default password
+#   delegate_to: localhost
+#   docker_container:
+#     name: "{{ db_container_name }}"
+#     command: >
+#       mysql -h localhost -u {{ db_user }} -p{{ db_password }} -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
+#     state: started
+#   register: default_password_result
 
 - name: Retrieve machine default password
   delegate_to: localhost
-  docker_container:
-    name: ctf_esgi_db_1
-    command: >
-      mysql -h localhost -u {{ env_vars.DB_USER }} -p{{ env_vars.DB_PASSWORD }} -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
-    state: started
+  command: >
+   docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -D esgi_db -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
   register: default_password_result
 
+- name: debug default_password_result
+  debug:
+    var: default_password_result
+    
 - name: Test if the default password is not empty
   delegate_to: localhost
   fail:

@@ -2,7 +2,7 @@
   copy:
     src: ../../../vm_client/
     dest: "/root/"
-    owner: "{{ ansible_user_name }}"
-    group: "{{ ansible_user_name }}"
+    owner: "root"
+    group: "root"
     mode: '0755'
 

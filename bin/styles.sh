@@ -29,8 +29,8 @@ function title1 {
 function title2 {
   echo ""
   echo "=== $1"
-}
 
+}
 function error {
 # Colorize the output
     echo -e "${RED}XXX Error: $1 ${NC}"
@@ -68,6 +68,18 @@ function bold {
 function init_dir {
   # Set dir variable to the script directory
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+}
+
+function containers_is_up {
+  tmp_dir=${dir}
+  init_dir
+  cd "${dir}/.."
+  # Check if the containers are up
+  containers=$(docker-compose ps |  grep ctf | grep -v Exit)
+  if [ -z "$containers" ]; then
+      error "The containers are not up, run docker-compose up command before running this"
+  fi
+  dir=${tmp_dir}
 }
 
 function sql_request {

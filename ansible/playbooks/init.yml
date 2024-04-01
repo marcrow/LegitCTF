@@ -1,8 +1,9 @@
-- name: Configurer le nouvel utilisateur et les paramètres de sécurité
-  hosts: "{{ ctf }}"
-  vars_files:
-    - ctf_vars.yml
+- name: Configure the vm to be automatically used by ansible for the ctf
+  hosts: all
+  # vars_files:
+  #   - ctf_vars.yml
   become: yes
   roles:
     - roles/ansible_config_users
     - roles/ctf_client_install
+    - roles/ctf_client_network

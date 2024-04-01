@@ -26,8 +26,8 @@ fi
 
 
 #Generate ssh keys
-ssh-keygen -t rsa -b 4096 -f "${cert_dir}/ctf" -N "" 2>/dev/null
-
+#ssh-keygen -t rsa -b 4096 -f "${cert_dir}/ctf" -N "" 2>/dev/null
+ssh-keygen -t ed25519 -f "${cert_dir}/ctf" -N "" 2>/dev/null
 
 
 
