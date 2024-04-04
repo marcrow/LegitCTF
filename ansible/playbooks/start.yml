@@ -1,5 +1,6 @@
 - name: Configurer le nouvel utilisateur et les paramètres de sécurité
   hosts: all
-  become: no
+  become: yes
   roles:
     - roles/ctf_enroll
+    - roles/vm_cleanup

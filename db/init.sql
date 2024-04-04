@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS ctf_vm_instance (
     ctf_id INT,
     machine_name VARCHAR(100) NOT NULL,
     ip VARCHAR(15) NOT NULL,
+    ip_global VARCHAR(15),
     is_running BOOLEAN NOT NULL DEFAULT FALSE,
     cookie VARCHAR(255), -- if null instance is not already authenticated
     FOREIGN KEY (ctf_id) REFERENCES ctfs(ctf_id),

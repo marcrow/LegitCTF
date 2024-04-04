@@ -51,7 +51,8 @@ router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
         const machine_name = req.body.machine_name;
         const default_password = req.body.default_password;
         const ctf_id = req.body.ctf_id;
-        const ip = utils.getClientIPv4(req);
+        ip = req.body.ip;
+        const ip_global = utils.getClientIPv4(req);
         if (!machine_name || !default_password || !ctf_id) {
             return res.status(400).send('machine_name, default_password, ctf_id are required');
         }
@@ -65,12 +66,13 @@ router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
             return res.status(400).send('wrong password');
         }
         const new_cookie = createCookie();
-        const result = await dbService.createInstance(ctf_id, machine_name, ip, new_cookie);
+        const result = await dbService.createInstance(ctf_id, machine_name, ip, ip_global, new_cookie);
         const instance = result[0].instance_id;
         notifData = {
             "type": "new_instance",
             "machine_name": machine_name,
             "ip": ip,
+            "ip_global": ip_global,
             "instance_id": instance,
             "ctf_id": ctf_id
         }

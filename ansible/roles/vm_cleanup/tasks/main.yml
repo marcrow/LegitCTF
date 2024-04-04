@@ -1,0 +1,43 @@
+- name: Clean logs in /var/log
+  shell: for i in $(ls {{ item }}); do  echo "" > $i; done
+  with_items:
+    - /var/log/*.log
+    - /var/log/*.old
+    - /var/log/apt/*
+    - /var/log/mysql/*
+    - /var/log/nginx/*
+    - /var/log/exim4/*
+    - /var/log/apache2/*
+    - /var/log/wtmp/*
+  become: yes
+  ignore_errors: yes
+
+- name: Clean archives in /var/log
+  shell: rm -rf {{ item }}
+  with_items:
+    - /var/log/*.gz
+  ignore_errors: yes
+  become: yes
+
+- name: Clean logs .1 in /var/log
+  shell: rm -rf {{ item }}
+  with_items:
+    - /var/log/*.1
+  ignore_errors: yes
+  become: yes
+
+- name: clean up /root history
+  shell: echo "" > /root/.*history
+  become: yes
+  ignore_errors: yes
+
+- name: clean up /home/{{ ansible_user_name }} history
+  shell: echo "" > /home/{{ ansible_user_name }}/.*history
+  become: yes
+  ignore_errors: yes
+
+- name: clean up {{ flag_location }}/network.sh
+  shell: rm -f {{ flag_location }}/network.sh
+  become: yes
+  ignore_errors: yes
+

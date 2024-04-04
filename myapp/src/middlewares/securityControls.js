@@ -275,9 +275,11 @@ function checkVMCookie (req, res, next) {
     console.log("cookies: ", cookies);
     const cookieValue = cookies.Cookie_machine;
     if (!cookieValue) {
+        console.log("cookie not found");
         return res.status(401).send('No cookie found');
     }
     if(cookieValue.length != 64){
+        console.log("cookie invalid");
         return res.status(401).send('Invalid cookie');
     }
     dbService.getCookie(instance_id).then(function(result){
@@ -287,13 +289,15 @@ function checkVMCookie (req, res, next) {
         }
         data = result[0];
         if(data.cookie != cookieValue){
+            console.log("cookie invalid2");
             return res.status(401).send('Invalid cookie');
         }
-        if(utils.getClientIPv4(req) != data.ip){
+        if(utils.getClientIPv4(req) != data.ip_global){
+            console.log("ip invalid");
             return res.status(401).send('Invalid Instance');
         }
+        next();
     });
-    next();
 };
 
 

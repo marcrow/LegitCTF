@@ -224,7 +224,7 @@ async function listVMInstance(ctf_id) {
 
         const query = `
             SELECT 
-                instance_id, machine_name, ip, is_running
+                instance_id, machine_name, ip_global, is_running
             FROM 
                 ctf_vm_instance
             WHERE 
@@ -247,7 +247,7 @@ async function listAllVmInstance(ctf_id) {
 
         const query = `
             SELECT 
-                instance_id, machine_name, ip, is_running
+                instance_id, machine_name, ip_global, is_running
             FROM 
                 ctf_vm_instance
             WHERE 
@@ -379,18 +379,18 @@ async function getDefaultPassword(ctf_id, machine_name) {
     }
 }
 
-async function createInstance(ctf_id, machine_name, ip, cookie) {
+async function createInstance(ctf_id, machine_name, ip, ip_global, cookie) {
     let conn;
     try {
         conn = await pool.getConnection();
 
         const query = `
             INSERT INTO 
-                ctf_vm_instance (ctf_id, machine_name, IP, is_running, cookie)
+                ctf_vm_instance (ctf_id, machine_name, IP, ip_global, is_running, cookie)
             VALUES 
-                (?, ?, ?, True, ?);
+                (?, ?, ?, ?, True, ?);
         `;
-        const rows = await conn.query(query, [ctf_id, machine_name, ip, cookie]);
+        const rows = await conn.query(query, [ctf_id, machine_name, ip, ip_global, cookie]);
         return await getInstanceId(ctf_id, machine_name, ip);
     } catch (err) {
         console.error('Error in createInstance:', err);

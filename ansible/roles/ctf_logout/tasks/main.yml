@@ -1,0 +1,6 @@
+- name: Log out the instance
+  command: 
+    cmd: "{{ flag_location }}/flag.sh -l"
+    chdir: "{{ flag_location }}"
+  become: yes
+

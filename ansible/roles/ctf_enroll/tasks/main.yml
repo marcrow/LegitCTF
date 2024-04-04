@@ -17,29 +17,37 @@
   shell: "grep 'DB_USER' {{ playbook_dir }}/../roles/ctf_enroll/files/linkEnv | cut -d ':' -f2"
   register: db_user
   delegate_to: localhost
+  become: no
+
 
 - name: debug current directory
   debug:
     var: db_user
+  become: no
 
 - name: Fail if DB_PASSWORD  variable is not set
   fail:
     msg: "DB_PASSWORD is not set in .env file"
   when: db_user.stdout == ""
+  become: no
 
 - name: retrieve DB_PASSWORD value from .env file
   shell: "grep 'DB_PASSWORD' {{ playbook_dir }}/../roles/ctf_enroll/files/linkEnv | cut -d ':' -f2"
   register: db_password
   delegate_to: localhost
+  become: no
+
 
 - name: debug current directory
   debug:
     var: db_password
+  become: no
 
 - name: Fail if DB_PASSWORD  variable is not set
   fail:
     msg: "DB_PASSWORD is not set in .env file"
   when: db_password.stdout == ""
+  become: no
 
 # - name: load environment variables used by db and webserver
 #   set_fact:
@@ -91,19 +99,67 @@
   delegate_to: localhost
   command: >
    docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -D esgi_db -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
-  register: default_password_result
+  register: result
+  become: no
+
+- name: Set default password
+  set_fact:
+    default_password_result: "{{ result.stdout_lines[3] }}"
+  become: no
 
 - name: debug default_password_result
   debug:
     var: default_password_result
+  become: no
     
 - name: Test if the default password is not empty
   delegate_to: localhost
   fail:
     msg: "The default password is empty"
-  when: default_password_result.stdout == ""
+  when: default_password_result == ""
+  become: no
 
-- name: display the default password
-  delegate_to: localhost
-  debug:
-    msg: "The default password is {{ default_password_result.stdout }}"
+
+
+- name: Add ctf host to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ vm_host_ip }} ctf.local ctf"
+
+
+- name: remove the default password from the file
+  ansible.builtin.lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    regexp: '^DEFAULT_PASSWORD='
+    state: absent
+  ignore_errors: yes
+
+- name: Add default password to connect to the api
+  ansible.builtin.lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "DEFAULT_PASSWORD={{ default_password_result }}"
+
+
+- name: Add machine name to connect to the api
+  ansible.builtin.lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "MACHINE_NAME={{ machine_name }}"
+
+
+- name: Add ctf if to connect to the api
+  ansible.builtin.lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "CTF_ID={{ ctf_id }}"
+    create: yes
+
+
+- name: enroll vm
+  command: 
+    cmd: "{{ flag_location }}/flag.sh -f "
+    chdir: "{{ flag_location }}"
+
+- name: remove the default password from the file
+  ansible.builtin.lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    regexp: '^DEFAULT_PASSWORD='
+    state: absent
