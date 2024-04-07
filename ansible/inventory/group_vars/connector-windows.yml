@@ -1,0 +1,10 @@
+---
+
+ansible_connection: winrm
+
+ansible_user: vagrant
+ansible_password: vagrant
+ansible_winrm_server_cert_validation: ignore
+become_with: runas
+become_method: runas
+become_user: Administrator

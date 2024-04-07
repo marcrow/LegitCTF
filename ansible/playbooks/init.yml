@@ -1,9 +1,13 @@
 - name: Configure the vm to be automatically used by ansible for the ctf
   hosts: all
+  gather_facts: no
   # vars_files:
   #   - ctf_vars.yml
   become: yes
   roles:
-    - roles/ansible_config_users
+    - role: roles/ansible_config_users
+      when: "'vm_linux' in group_names"
     - roles/ctf_client_install
-    - roles/ctf_client_network
+    - role: roles/ctf_client_network
+      when: "'vm_linux' in group_names"
+      

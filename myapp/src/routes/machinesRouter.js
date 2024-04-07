@@ -48,6 +48,7 @@ router.get('/test', sseMiddleware, async (req, res) => {
 
 router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
     try {
+        console.log("firstAuth")
         const machine_name = req.body.machine_name;
         const default_password = req.body.default_password;
         const ctf_id = req.body.ctf_id;

@@ -1,33 +1,48 @@
 all:
-    vars_files:
-      - ./docker.yml
     vars:
       ctf_id: 3
       ctf: test
       vm_host_ip: 192.168.56.1
-    hosts:
-      Crow_10:
-        ansible_host: 192.168.56.10
-        ip: 192.168.56.10
-        machine_name: Crow
-        flag_location: /root
-      Crow_11:
-        ansible_host: 192.168.56.11
-        ip: 192.168.56.11
-        machine_name: Crow
-        flag_location: /root
-      Crow_12:
-        ansible_host: 192.168.56.12
-        ip: 192.168.56.12
-        machine_name: Crow
-        flag_location: /root
-      cat_13:
-        ansible_host: 192.168.56.13
-        ip: 192.168.56.13
-        machine_name: cat
-        flag_location: /root
-      cat_14:
-        ansible_host: 192.168.56.14
-        ip: 192.168.56.14
-        machine_name: cat
-        flag_location: /root
+    children:
+      vm_linux:
+        hosts:
+          Crow_10:
+            ansible_host: 192.168.56.10
+            ip: 192.168.56.10
+            machine_name: Crow
+            flag_location: /root
+          Crow_11:
+            ansible_host: 192.168.56.11
+            ip: 192.168.56.11
+            machine_name: Crow
+            flag_location: /root
+          Crow_12:
+            ansible_host: 192.168.56.12
+            ip: 192.168.56.12
+            machine_name: Crow
+            flag_location: /root
+          cat_13:
+            ansible_host: 192.168.56.13
+            ip: 192.168.56.13
+            machine_name: cat
+            flag_location: /root
+          cat_14:
+            ansible_host: 192.168.56.14
+            ip: 192.168.56.14
+            machine_name: cat
+            flag_location: /root  # Corrected indentation here
+      vm_windows:
+        hosts:
+          AD1_10:
+            ansible_host: 192.168.56.10
+            ip: 192.168.56.10
+            machine_name: AD1
+            flag_location: \Users\Administrator\Desktop
+
+connector-windows:
+    children:
+      vm_windows:
+
+connector-linux:
+    children:
+      vm_linux:

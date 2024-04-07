@@ -1,3 +1,6 @@
+- name: Gather facts
+  setup:
+  
 - name: Debug hostvars[inventory_hostname]['ansible_host']
   debug:
     msg: "The host's IP address is {{ hostvars[inventory_hostname]['ip'] }}"
@@ -79,10 +82,17 @@
     cmd: /root/network.sh "{{ host_only_interface }}" "{{ ip }}" 255.255.255.0
   when: not skip_role
 
+- name: Wait for network service to restart
+  wait_for:
+    host: "{{ vm_host_ip }}"
+    port: 22
+    delay: 3
+    timeout: 60
+
 - name: Test the host-only interface
   ansible.builtin.ping:
     data: "ping"
-  delegate_to: "{{ vm_host_ip }}"
+    
 
 
 - name: kill dhclient

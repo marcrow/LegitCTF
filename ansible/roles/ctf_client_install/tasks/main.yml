@@ -1,8 +1,36 @@
-- name: Upload the vm client directory to the vm
+---
+- name: Copy files to remote host
   copy:
-    src: ../../../vm_client/
-    dest: "/root/"
+    src: "../../../vm_client/{{ item }}"
+    dest: "{{ flag_location }}"
     owner: "root"
     group: "root"
-    mode: '0755'
+    mode: '0644'
+  loop:
+    - "flag.sh"
+    - "flag.conf"
+    - "cert.pem"
+    - "network.sh"
+  become: yes
+  when: "'vm_linux' in group_names"
 
+- name: Install winrm
+  delegate_to: localhost
+  ansible.builtin.pip:
+    name: pywinrm
+  when: "'vm_windows' in group_names"
+  become: no
+
+- name: Copy files to Windows hosts
+  copy:
+    src: "../../../vm_client/{{ item }}"
+    dest: "{{ flag_location }}"
+    owner: "Administrator"
+  loop:
+    - "flag.ps1"
+    - "flag.conf"
+    - "cert.der"
+  become: yes
+  become_method: runas
+  become_user: Administrator
+  when: "'vm_windows' in group_names"

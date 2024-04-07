@@ -1,7 +1,8 @@
 - name: Configurer le nouvel utilisateur et les paramètres de sécurité
   hosts: all
-  become: yes
+  gather_facts: no
   serial: 1
   roles:
     - roles/ctf_enroll
-    - roles/vm_cleanup
+    - role: roles/vm_cleanup
+      when: "'vm_linux' in group_names"

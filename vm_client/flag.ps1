@@ -53,18 +53,26 @@ function import_cert {
 
 # Function to insert parameters into flag.conf file
 function insert_parameters {
-    param (
+    param(
+        [Parameter(Mandatory=$true)]
         [string]$parameter_name,
+
+        [Parameter(Mandatory=$true)]
         [string]$parameter_value
     )
-    if (Select-String -Pattern "^$parameter_name=" -Path $config_file) {
-        (Get-Content $config_file) -replace "^$parameter_name=.*", "$parameter_name=$parameter_value" | Set-Content $config_file
-    }
-    else {
-        Add-Content -Path $config_file -Value "$parameter_name=$parameter_value"
+
+    $configFilePath = "./flag.conf"
+    $configContent = Get-Content -Path $configFilePath
+
+    if ($configContent -match $parameter_name) {
+        # If the parameter already exists in the file, replace its value
+        $configContent -replace "$parameter_name=.*", "$parameter_name=$parameter_value" |
+            Set-Content -Path $configFilePath
+    } else {
+        # If the parameter does not exist in the file, add it
+        "$parameter_name=$parameter_value" | Add-Content -Path $configFilePath
     }
 }
-
 # Function to ask for password
 function ask_for_password {
     Write-Host "Please enter your password to validate the machine:"

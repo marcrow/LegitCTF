@@ -125,46 +125,129 @@
   become: no
 
 
-
-- name: Add ctf host to /etc/hosts
+# Linux - Add the ctf host to /etc/hosts
+- name: Linux - Add ctf host to /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     line: "{{ vm_host_ip }} ctf.local ctf"
+  when: "'vm_linux' in group_names"
+  
+
+# Windows - Add ctf remote host
+- name: Windows - Add ctf host to remote host
+  community.windows.win_lineinfile:
+    path: C:\Windows\System32\drivers\etc\hosts
+    line: "{{ vm_host_ip }} ctf.local ctf"
+  become_method: runas
+  become_user: Administrator
+  when: "'vm_windows' in group_names"
 
 
-- name: remove the default password from the file
+
+
+- name: Linux - remove the default password from the file
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     regexp: '^DEFAULT_PASSWORD='
     state: absent
   ignore_errors: yes
+  when: "'vm_linux' in group_names"
 
-- name: Add default password to connect to the api
+- name: Windows - remove the default password from the file
+  community.windows.win_lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    regexp: '^DEFAULT_PASSWORD='
+    state: absent
+    become_with: runas
+    become_method: runas
+    become_user: Administrator
+  when: "'vm_windows' in group_names"
+
+- name: Linux - Add default password to connect to the api
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     line: "DEFAULT_PASSWORD={{ default_password_result }}"
+  become: yes
+  when: "'vm_linux' in group_names"
+
+- name: Windows - Add default password to connect to the api
+  community.windows.win_lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "DEFAULT_PASSWORD={{ default_password_result }}"
+    become_method: runas
+    become_user: Administrator
+  when: "'vm_windows' in group_names"
 
 
-- name: Add machine name to connect to the api
+- name: Linux - Add machine name to connect to the api
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     line: "MACHINE_NAME={{ machine_name }}"
+  become: yes
+  when: "'vm_linux' in group_names"
+
+- name: Windows - Add machine name to connect to the api
+  community.windows.win_lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "MACHINE_NAME={{ machine_name }}"
+    become_method: runas
+    become_user: Administrator
+  when: "'vm_windows' in group_names"
 
 
-- name: Add ctf if to connect to the api
+- name: Linux - Add ctf if to connect to the api
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     line: "CTF_ID={{ ctf_id }}"
     create: yes
+  become: yes
+  when: "'vm_linux' in group_names"
+
+- name: Windows - Add ctf if to connect to the api
+  community.windows.win_lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    line: "CTF_ID={{ ctf_id }}"
+    create: yes
+    become_method: runas
+    become_user: Administrator
+  when: "'vm_windows' in group_names"
 
 
-- name: enroll vm
+- name: Linux - Exec rights on flag.sh
+  ansible.builtin.file:
+    path: "{{ flag_location }}/flag.sh"
+    mode: u+x
+  become: yes
+  when: "'vm_linux' in group_names"
+
+# Linux - Enroll the vm
+- name: Linux - enroll vm
   command: 
     cmd: "{{ flag_location }}/flag.sh -f "
     chdir: "{{ flag_location }}"
+  become: yes
+  when: "'vm_linux' in group_names"
 
-- name: remove the default password from the file
+- name: Windows - enroll vm
+  ansible.windows.win_shell: |
+    Set-Location "{{ flag_location }}"
+    .\flag.ps1 -f
+  when: "'vm_windows' in group_names"
+
+
+- name: Linux - remove the default password from the file
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     regexp: '^DEFAULT_PASSWORD='
     state: absent
+  become: yes
+  when: "'vm_linux' in group_names"
+
+- name: Windows - remove the default password from the file
+  community.windows.win_lineinfile:
+    path: "{{ flag_location }}/flag.conf"
+    regexp: '^DEFAULT_PASSWORD='
+    state: absent
+    become_method: runas
+    become_user: Administrator
+  when: "'vm_windows' in group_names"
