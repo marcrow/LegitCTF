@@ -1,5 +1,6 @@
 - name: Stop a ctf instance
   hosts: all
   become: yes
+  serial: 1
   roles:
     - roles/ctf_logout

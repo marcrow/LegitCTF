@@ -51,10 +51,10 @@ router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
         const machine_name = req.body.machine_name;
         const default_password = req.body.default_password;
         const ctf_id = req.body.ctf_id;
-        ip = req.body.ip;
-        const ip_global = utils.getClientIPv4(req);
-        if (!machine_name || !default_password || !ctf_id) {
-            return res.status(400).send('machine_name, default_password, ctf_id are required');
+        ip = utils.getClientIPv4(req);
+        const ip_global = req.body.ip;
+        if (!machine_name || !default_password || !ctf_id || !ip_global) {
+            return res.status(400).send('machine_name, default_password, ctf_id, global ip are required');
         }
         const id = Number(await dbService.getInstanceId(ctf_id, machine_name, ip))
         if(id != 0 && id != "NaN"){

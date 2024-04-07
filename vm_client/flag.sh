@@ -105,14 +105,14 @@ first_auth() {
         wget --secure-protocol=auto --ca-certificate=./cert.pem --header 'Content-Type: application/json' --post-data '{
         "ctf_id": "'"$ctf_id"'",
         "machine_name": "'"$machine_name"'",
-        "ip": "'"$default_ip"'",
+        "ip_global": "'"$default_ip"'",
         "default_password": "'"$default_password"'"
     }' "$ctf_server/machines/firstAuth" -O -
     """
     result=$(wget --secure-protocol=auto --ca-certificate=./cert.pem --header 'Content-Type: application/json' --post-data '{
         "ctf_id": "'"$ctf_id"'",
         "machine_name": "'"$machine_name"'",
-        "ip": "'"$default_ip"'",
+        "ip_global": "'"$default_ip"'",
         "default_password": "'"$default_password"'"
     }' "$ctf_server/machines/firstAuth" -O -)
     status=$?

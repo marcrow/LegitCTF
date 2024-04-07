@@ -18,7 +18,7 @@ window.onload = function() {
             addDataInDailyChart(data)
         } 
         else if(data.type == "new_instance"){
-            message = `Message: ${data.machine_name} added at: ${data.ip}`;
+            message = `Message: ${data.machine_name} added at: ${data.ip_global}`;
             addMachineInTable(data);
         }
         else if(data.type == "logout"){
@@ -129,7 +129,7 @@ function addMachineInTable(data){
         const cell2 = row.insertCell(1);
         const cell3 = row.insertCell(2);
         cell1.innerHTML = data.machine_name;
-        cell2.innerHTML = data.ip;
+        cell2.innerHTML = data.ip_global;
         cell3.innerHTML = data.instance_id;
         cell3.className = "hiddenCells";
     }

@@ -4,3 +4,7 @@
     chdir: "{{ flag_location }}"
   become: yes
 
+# - name: Shutdown the instance
+#   command: 
+#     cmd: "shutdown 0"
+#   become: yes

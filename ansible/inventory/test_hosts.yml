@@ -16,3 +16,18 @@ all:
         ip: 192.168.56.11
         machine_name: Crow
         flag_location: /root
+      Crow_12:
+        ansible_host: 192.168.56.12
+        ip: 192.168.56.12
+        machine_name: Crow
+        flag_location: /root
+      cat_13:
+        ansible_host: 192.168.56.13
+        ip: 192.168.56.13
+        machine_name: cat
+        flag_location: /root
+      cat_14:
+        ansible_host: 192.168.56.14
+        ip: 192.168.56.14
+        machine_name: cat
+        flag_location: /root

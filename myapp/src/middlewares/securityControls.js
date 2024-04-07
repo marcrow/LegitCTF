@@ -292,7 +292,8 @@ function checkVMCookie (req, res, next) {
             console.log("cookie invalid2");
             return res.status(401).send('Invalid cookie');
         }
-        if(utils.getClientIPv4(req) != data.ip_global){
+        if(utils.getClientIPv4(req) != data.ip){
+            console.log(utils.getClientIPv4(req) + " " + data.ip);
             console.log("ip invalid");
             return res.status(401).send('Invalid Instance');
         }

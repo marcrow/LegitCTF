@@ -596,7 +596,7 @@ function fillMachineTable(machines) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${machine.machine_name}</td>
-            <td>${machine.ip}</td>
+            <td>${machine.ip_global}</td>
             <td class="hiddenCells">${machine.instance_id}</td>
         `;
         tableBody.appendChild(row);

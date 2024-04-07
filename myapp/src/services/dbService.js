@@ -386,7 +386,7 @@ async function createInstance(ctf_id, machine_name, ip, ip_global, cookie) {
 
         const query = `
             INSERT INTO 
-                ctf_vm_instance (ctf_id, machine_name, IP, ip_global, is_running, cookie)
+                ctf_vm_instance (ctf_id, machine_name, ip, ip_global, is_running, cookie)
             VALUES 
                 (?, ?, ?, ?, True, ?);
         `;

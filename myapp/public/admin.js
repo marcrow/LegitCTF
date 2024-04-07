@@ -291,12 +291,12 @@ function fillMachineTable(machines) {
             button2 = `<button class="stateButton" onclick="stopMachine('${machine.instance_id}')">Stop</button>`;
         }else{
             machine.state = "stopped";
-            button2 = `<button class="stateButton" onclick="startMachine('${machine.instance_id}','${machine.ip}','${machine.machine_name}')">Start</button>`;
+            button2 = `<button class="stateButton" onclick="startMachine('${machine.instance_id}','${machine.ip_global}','${machine.machine_name}')">Start</button>`;
         }
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${machine.machine_name}</td>
-            <td>${machine.ip}</td>
+            <td>${machine.ip_global}</td>
             <td>${machine.state}</td>
             <td>${button2}<button onclick="kill('${machine.instance_id}')">Kill</button></td>
             <td class="hiddenCells">${machine.instance_id}</td> 

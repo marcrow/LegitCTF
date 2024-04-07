@@ -98,13 +98,18 @@
 - name: Retrieve machine default password
   delegate_to: localhost
   command: >
-   docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -D esgi_db -e "SELECT default_password FROM ctfs_machines WHERE machine_name = '{{ machine_name }}';"
+   docker exec {{ db_container_name }} mariadb -h localhost -u {{ db_user.stdout.split('=')[1] }} -p{{ db_password.stdout.split('=')[1] }} -D esgi_db -e "SELECT default_password FROM ctfs_machines WHERE ctf_id = '{{ ctf_id }}' and machine_name = '{{ machine_name }}';"
   register: result
+  become: no
+
+- name: debug result
+  debug:
+    var: result.stdout_lines[1]
   become: no
 
 - name: Set default password
   set_fact:
-    default_password_result: "{{ result.stdout_lines[3] }}"
+    default_password_result: "{{ result.stdout_lines[1] }}"
   become: no
 
 - name: debug default_password_result
