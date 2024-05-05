@@ -75,9 +75,9 @@ function containers_is_up {
   init_dir
   cd "${dir}/.."
   # Check if the containers are up
-  containers=$(docker-compose ps |  grep ctf | grep -v Exit)
+  containers=$(docker compose ps |  grep ctf | grep -v Exit)
   if [ -z "$containers" ]; then
-      error "The containers are not up, run docker-compose up command before running this"
+      error "The containers are not up, run docker compose up command before running this"
   fi
   dir=${tmp_dir}
 }
@@ -97,7 +97,7 @@ function sql_request {
   source "${dir}/../myapp/.env"
 
   cd "${dir}/.."
-  containers=$(docker-compose images)
+  containers=$(docker compose images)
   db_container=$(echo "$containers" | cut -d " " -f1 | grep db)
   app_container=$(echo "$containers" | cut -d " " -f1 | grep app)
   # Test if the db_container and app_container are set

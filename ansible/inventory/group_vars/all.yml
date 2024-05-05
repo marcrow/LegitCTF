@@ -1,2 +1,2 @@
-db_container_name: ctf_esgi_db_1
-app_container_name: ctf_esgi_app_1
+db_container_name: ctf_esgi-db-1
+app_container_name: ctf_esgi-app-1

@@ -1,5 +1,6 @@
 - name: Gather facts
   setup:
+
   
 - name: Debug hostvars[inventory_hostname]['ansible_host']
   debug:
@@ -24,8 +25,11 @@
 
 - name: Calculate the host-only IP range
   set_fact:
-    host_only_ip_range: "{{ vm_host_ip | regex_replace('\\.[0-9]+$', '.') }}"
+    host_only_ip_range: "{{ hostvars[inventory_hostname]['ip'] | regex_replace('\\.[0-9]+$', '.') }}"
   when: not skip_role
+
+
+
 
 - name: Get the default interface
   set_fact:
@@ -53,14 +57,24 @@
       - network
   when: not skip_role
 
+- name: Display the host-only IP range
+  debug:
+    msg: "La plage d'adresse IP host-only est {{ host_only_ip_range }}"
+  when: not skip_role
+
+
 - name: Identify the host-only interface based on the IP range
   set_fact:
     host_only_interface: "{{ item }}"
   loop: "{{ ansible_interfaces }}"
+  vars:
+    item_value: "{{ ansible_facts[item] }}"
   when: 
-    - "ansible_facts[item]['ipv4'] is defined"
-    - "ansible_facts[item]['ipv4']['address'].startswith(host_only_ip_range)"
-  when: not skip_role
+    - "not skip_role"
+    - "item_value is mapping"
+    - "'ipv4' in item_value"
+    - "item_value.ipv4.address is defined"
+    - "item_value.ipv4.address.startswith(host_only_ip_range)"
 
 - name: Display the host-only interface
   debug:
@@ -76,6 +90,8 @@
   ansible.builtin.command:
     cmd: ip addr flush dev "{{ host_only_interface }}"
   when: not skip_role
+
+
 
 - name: Configure the host-only interface
   ansible.builtin.command:

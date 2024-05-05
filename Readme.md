@@ -15,9 +15,15 @@ He will then be asked for his password to authenticate it. The database is then 
 
 ## Installation
 ### Prerequisite
-docker-compose
+docker compose
 ansible
 ansible-playbook
+
+You must also installed yq. On Ubuntu :
+
+```bash
+snap install yq --channel=v3/stable
+```
 
 On your hypervisor, a host only network configured (with dhcp, i think it is configured by default on VirtualBox).
 This network will be use as secured network to communicate with the ctf API.
@@ -57,11 +63,12 @@ to communicate with the ctf server.
 The Ansible script will configure everything for you, but there are a few things you need to know to make it work.
 1. The ip from an another interface (bridge one for example)
 2. A username + password with root privilege on the system
-3. The name of the instance you want to configfure
+3. The name of the instance you want to configure
 4. A SSH server installed and running
 
 Then run the following command:
-ansible-playbook -l <instance_name> -u <username> --ask-pass  playbooks/init.yml -i ./inventory/<host_file> -e 'ansible_host=<VM_IP>'  
+ansible-playbook -l <instance_name> -e 'ansible_user=<vm_user>' --ask-pass  playbooks/init.yml -i ./inventory/<host_file> -e 'ansible_host=<VM_IP>'  
+
 The <instance_name> shall be found in ansible/inventory/<host_file>. It is the name of the instance you want to configure.
 
 
@@ -85,25 +92,3 @@ Information about the project's license.
 ## List of js package 
 npm install moment chart.js chartjs-adapter-moment
 
-
-## To do
-- custom privilege of flags.sh
-- manage vm with ansible via hypervisor tools
-
-- Clean solution to solve problem with mise when requests package is missing.
-tmp solution : 
-/home/marc-antoine/.local/pipx/venvs/ansible-core/bin/python3 
-Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>> import pip
->>> 
->>> def install(package):
-...     if hasattr(pip, 'main'):
-...         pip.main(['install', package])
-...     else:
-...         pip._internal.main(['install', package])
-... 
->>> # Example
->>> if __name__ == '__main__':
-...     install('requests')
-... 

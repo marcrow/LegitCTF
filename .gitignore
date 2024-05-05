@@ -1,6 +1,9 @@
 # Ansible secrets
 ansible/secrets/*
 
+# SSL certificates
+myapp/certs/*
+
 # Logs
 logs
 *.log

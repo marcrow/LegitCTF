@@ -2,7 +2,6 @@ FROM node:14
 WORKDIR /usr/src/app
 COPY myapp/ ./
 RUN npm install
-EXPOSE 3000
+EXPOSE 8080
 
-# Start SSH service
-CMD /usr/sbin/sshd -D & node server.js
+CMD ["node", "server.js"]

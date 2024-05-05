@@ -1,0 +1,43 @@
+connector-windows:
+    children:
+      vm_windows:
+
+connector-linux:
+    children:
+      vm_linux:
+
+all:
+    # vars_files:
+    #   - ./docker.yml
+    vars:
+      ctf_id: 1
+      ctf: debug
+      vm_host_ip: 192.168.56.1
+    children:
+      vm_linux:
+        hosts:
+          Crow_10:
+            ansible_host: 192.168.56.10
+            ip: 192.168.56.10
+            machine_name: Crow
+            flag_location: /root
+          Crow_11:
+            ansible_host: 192.168.56.11
+            ip: 192.168.56.11
+            machine_name: Crow
+            flag_location: /root
+          Crow_12:
+            ansible_host: 192.168.56.12
+            ip: 192.168.56.12
+            machine_name: Crow
+            flag_location: /root
+          Cat_13:
+            ansible_host: 192.168.56.13
+            ip: 192.168.56.13
+            machine_name: cat
+            flag_location: /root
+          Cat_14:
+            ansible_host: 192.168.56.14
+            ip: 192.168.56.14
+            machine_name: cat
+            flag_location: /root

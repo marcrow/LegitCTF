@@ -42,7 +42,7 @@ sql="INSERT INTO admin (username, password) VALUES ('$username', '$hashed');"
 source "${dir}/../myapp/.env"
 
 cd "${dir}/.."
-containers=$(docker-compose images)
+containers=$(docker compose images)
 db_container=$(echo "$containers" | cut -d " " -f1 | grep db)
 app_container=$(echo "$containers" | cut -d " " -f1 | grep app)
 # Test if the db_container and app_container are set

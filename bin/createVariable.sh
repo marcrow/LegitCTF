@@ -21,6 +21,12 @@ env_file="${dir}/../myapp/.env"
 # docker-compose file path
 docker_compose_file="${dir}/../docker-compose.yml"
 
+# flag.conf file path
+flag_file="${dir}/../vm_client/flag.conf"
+
+# ansible password file path
+ansible_password_file="${dir}/../ansible/secrets/ansible_passwd"
+
 # Apply the changes to a file
 createVariable() {
     operator="="
@@ -75,6 +81,21 @@ else
     success "The mysql root password has been also generated"
 fi
 
+# Generates ansible user password
+ansible_user_password=$(openssl rand -base64 32)
+# Test return code
+if [ $? -ne 0 ]; then
+    error "An error occured while generating the ansible user password"
+else 
+    success "The ansible user password has been also generated"
+fi
+
+echo $ansible_user_password > $ansible_password_file
+if [ $? -ne 0 ]; then
+    error "An error occured while saving the ansible user password"
+else 
+    success "The ansible user password has been saved in the ansible password file"
+fi
 
 ask "CTF frontend listenning port (default: 3000):"
 frontend_port=$response
@@ -97,14 +118,14 @@ modifyVariableForDockerCompose "MYSQL_ROOT_PASSWORD" "$mysql_root_password" "$do
 if [ $? -ne 0 ]; then
     error "An error occured while setting the mysql root password"
 else 
-    success "The mysql root password has been set in the docker-compose file"
+    success "The mysql root password has been set in the docker compose file"
 fi
 
 modifyVariableForDockerCompose "MARIADB_PASSWORD" "$password_db" "$docker_compose_file"
 if [ $? -ne 0 ]; then
     error "An error occured while setting the mariadb password"
 else 
-    success "The mariadb password has been set in the docker-compose file"
+    success "The mariadb password has been set in the docker compose file"
 fi
 
 createVariable "DB_PASSWORD" "$password_db" "$env_file"
@@ -120,6 +141,30 @@ if [ $? -ne 0 ]; then
 else 
     success "The web server port has been set in the .env file"
 fi
+
+createVariable "CTF_SERVER" "https://ctf.local:$frontend_port" "$flag_file"
+if [ $? -ne 0 ]; then
+    error "An error occured while setting the frontend port"
+else 
+    success "The web server port has been set in the .env file"
+fi
+
+yq e ".services.app.ports[0] = \"$frontend_port:$frontend_port\"" -i docker-compose.yml
+if [ $? -ne 0 ]; then
+    error "An error occured while setting the frontend port in the docker-compose file"
+else 
+    success "The frontend port has been set in the docker-compose file"
+fi
+
+sed -i "s/^EXPOSE .*/EXPOSE $PORT/" Dockerfile    
+if [ $? -ne 0 ]; then
+    error "An error occured while setting the frontend port in the Dockerfile"
+else 
+    success "The frontend port has been set in the Dockerfile"
+fi
+
+
+
 
 createVariable "MACHINE_NETWORK" "$network_address" "$env_file"
 if [ $? -ne 0 ]; then

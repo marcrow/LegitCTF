@@ -1,6 +1,14 @@
+connector-windows:
+    children:
+      vm_windows:
+
+connector-linux:
+    children:
+      vm_linux:
+
 all:
-    vars_files:
-      - ./docker.yml
+    # vars_files:
+    #   - ./docker.yml
     vars:
       ctf_id: $ctf_id
       ctf: $ctf_name
