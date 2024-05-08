@@ -131,6 +131,8 @@
     path: /etc/hosts
     line: "{{ vm_host_ip }} ctf.local ctf"
   when: "'vm_linux' in group_names"
+  become: yes
+  
   
 
 # Windows - Add ctf remote host

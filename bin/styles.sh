@@ -98,8 +98,8 @@ function sql_request {
 
   cd "${dir}/.."
   containers=$(docker compose images)
-  db_container=$(echo "$containers" | cut -d " " -f1 | grep db)
-  app_container=$(echo "$containers" | cut -d " " -f1 | grep app)
+  db_container=$(echo "$containers" | cut -d " " -f1 | grep db-)
+  app_container=$(echo "$containers" | cut -d " " -f1 | grep app-)
   # Test if the db_container and app_container are set
   if [ -z "$db_container" ] || [ -z "$app_container" ]; then
       error "The db_container or app_container is not set"

@@ -24,6 +24,31 @@ if ! ip link show $INTERFACE > /dev/null 2>&1; then
     exit 1
 fi
 
+# test the netmask format ex: /24 or 255.255.255.0
+# return 0 if / format
+# return 1 if 255 format
+get_netmask_format() {
+    local netmask=$1
+    #start with / and followed by numbers 
+    if [[ $netmask =~ ^/[0-9]+$ ]]; then
+        # Remove the / before performing the comparison
+        local netmask_value=${netmask:1}
+        if [ $netmask_value -lt 8 ] || [ $netmask_value -gt 30 ]; then
+            echo "Invalid netmask value. It should be between 8 and 30."
+            exit 1
+        fi
+        return 1
+    else 
+        #start by number and followed by 3 dots and numbers
+        if [[ $netmask =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            return  0
+        else
+            echo "Invalid netmask format"
+            exit 1
+        fi
+    fi 
+}
+
 configure_traditional() {
     CFG_FILE="/etc/network/interfaces.d/${INTERFACE}.cfg"
     echo "Configure with /etc/network/interfaces.d/"
@@ -48,6 +73,8 @@ configure_traditional() {
 
 configure_netplan() {
     echo "netplan configuration"
+    get_netmask_format $NETMASK
+    NETMASK_FORMAT=$?
     NETPLAN_FILE="/etc/netplan/01-netcfg-${INTERFACE}.yaml"
 
     ip addr flush dev $INTERFACE
@@ -57,7 +84,11 @@ configure_netplan() {
     echo "    ethernets:" >> $NETPLAN_FILE
     echo "        ${INTERFACE}:" >> $NETPLAN_FILE
     echo "            dhcp4: no" >> $NETPLAN_FILE
-    echo "            addresses: [${IPADDR}/${NETMASK}]" >> $NETPLAN_FILE
+    if [ $NETMASK_FORMAT -eq 1 ]; then
+        echo "            addresses: [${IPADDR}${NETMASK}]" >> $NETPLAN_FILE
+    else
+        echo "            addresses: [${IPADDR}/${NETMASK}]" >> $NETPLAN_FILE
+    fi
     
     echo "IP configuration apply to ${INTERFACE}. Restart the interface..."
     netplan apply

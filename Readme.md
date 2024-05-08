@@ -69,6 +69,8 @@ The Ansible script will configure everything for you, but there are a few things
 Then run the following command:
 ansible-playbook -l <instance_name> -e 'ansible_user=<vm_user>' --ask-pass  playbooks/init.yml -i ./inventory/<host_file> -e 'ansible_host=<VM_IP>'  
 
+If you have issue with the privesc add --ask-become-pass
+
 The <instance_name> shall be found in ansible/inventory/<host_file>. It is the name of the instance you want to configure.
 
 

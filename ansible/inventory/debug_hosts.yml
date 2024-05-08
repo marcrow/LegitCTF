@@ -41,3 +41,18 @@ all:
             ip: 192.168.56.14
             machine_name: cat
             flag_location: /root
+          Clip_15:
+            ansible_host: 192.168.56.15
+            ip: 192.168.56.15
+            machine_name: Clip
+            flag_location: /root
+          Fast_16:
+            ansible_host: 192.168.56.16
+            ip: 192.168.56.16
+            machine_name: Fast
+            flag_location: /root
+          Fast_17:
+            ansible_host: 192.168.56.17
+            ip: 192.168.56.17
+            machine_name: Fast
+            flag_location: /root

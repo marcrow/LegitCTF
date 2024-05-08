@@ -41,3 +41,10 @@
   become: yes
   ignore_errors: yes
 
+# - name: remove prof user
+#   user:
+#     name: prof
+#     state: absent
+#   become: yes
+#   ignore_errors: yes
+
