@@ -56,3 +56,33 @@ all:
             ip: 192.168.56.17
             machine_name: Fast
             flag_location: /root
+          Run_18:
+            ansible_host: 192.168.56.18
+            ip: 192.168.56.18
+            machine_name: Run
+            flag_location: /root
+          Run_19:
+            ansible_host: 192.168.56.19
+            ip: 192.168.56.19
+            machine_name: Run
+            flag_location: /root
+          Run_20:
+            ansible_host: 192.168.56.20
+            ip: 192.168.56.20
+            machine_name: Run
+            flag_location: /root
+          Clock_21:
+            ansible_host: 192.168.56.21
+            ip: 192.168.56.21
+            machine_name: Clock
+            flag_location: /root
+          Clock_22:
+            ansible_host: 192.168.56.22
+            ip: 192.168.56.22
+            machine_name: Clock
+            flag_location: /root
+          Clock_23:
+            ansible_host: 192.168.56.23
+            ip: 192.168.56.23
+            machine_name: Clock
+            flag_location: /root

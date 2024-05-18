@@ -19,7 +19,38 @@ function getClientIPv4(req) {
     return ip;
 }
 
+function getFormattedDate(date=null) {
+    if (date == null) {
+        date = new Date();
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
+
+function getFormattedHour(date=null) {
+    if (date == null) {
+        date = new Date();
+    }
+    const hours = date.getHours();
+    return hours;
+}
+
+function getFormatedISODate(date=null) {
+    if (date == null) {
+        date = new Date();
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = date.getHours();
+    const minutes = date.getMinutes(); 
+    const seconds = date.getSeconds();
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
+}
+
 module.exports = {
-    convertToDateSQL, convertToYYYYMMDD, getClientIPv4
+    convertToDateSQL, convertToYYYYMMDD, getClientIPv4, getFormattedDate, getFormattedHour, getFormatedISODate 
 };
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const { validateInteger } = require('../middlewares/securityControls'); // Adjust the path as necessary
 const dbService = require('../services/dbService'); // Adjust the path as necessary
 const { validateArgs } = require('../middlewares/securityControls');
-const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
+const { convertToDateSQL, convertToYYYYMMDD, getFormattedDate, getFormattedHour } = require('../controllers/utils');
 const sseMiddleware = require('../middlewares/sse'); // Adjust the path as necessary
 
 router.get('/events', sseMiddleware, (req, res) => {
@@ -50,11 +50,11 @@ router.get('/data', validateArgs, async (req, res) => {
         //getLastpawn
         let pwnDate = await dbService.getLastPwn(ctfId);
         if( pwnDate && pwnDate != null && pwnDate.latestCompromiseTime != null){
-            pwn_date = pwnDate.latestCompromiseTime.toISOString().split("T")[0];
+            pwn_date = getFormattedDate(pwnDate.latestCompromiseTime);
         }
         else{
             const ctf_data = await dbService.getCtfById(ctfId);
-            pwn_date = ctf_data.start_date.toISOString().split("T")[0]
+            pwn_date = getFormattedDate(ctf_data.start_date);
             console.log("pwn_date: ", pwn_date);
         }
     }

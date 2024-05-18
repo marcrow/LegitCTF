@@ -40,6 +40,24 @@
   debug:
     msg: "L'interface par défaut est {{ ansible_interface }}" 
   when: not skip_role  
+
+
+- name: display all interfaces
+  debug:
+    msg: "Les interfaces sont {{ ansible_interfaces }}"
+  when: not skip_role 
+
+- name: Filter interface by name, only keep eth and enp interfaces and remove the ansible interface from the list
+  set_fact:
+    ansible_interfaces: "{{ ansible_interfaces | select('match', '^(eth|enp|ens)') | list }}"
+  when: not skip_role
+
+
+
+- name: Display the filtered interfaces
+  debug:
+    msg: "Les interfaces filtrées sont {{ ansible_interfaces }}"
+  when: not skip_role
   
 
 - name: Run dhclient on all interfaces except the Ansible interface
@@ -95,7 +113,7 @@
 
 - name: Configure the host-only interface
   ansible.builtin.command:
-    cmd: /root/network.sh "{{ host_only_interface }}" "{{ ip }}" 255.255.255.0
+    cmd: /root/network.sh "{{ host_only_interface }}" "{{ ip }}" /24
   when: not skip_role
 
 - name: Wait for network service to restart

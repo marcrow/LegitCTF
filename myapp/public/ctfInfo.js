@@ -74,7 +74,9 @@ async function fetchCtfDetails(ctfId) {
 }
 
 function convertToYYYYMMDD(sqlDateStr) {
+    console.log("sqlDateStr", sqlDateStr)
     let DateStr = sqlDateStr.split('T')[0];
+    console.log("DateStr", DateStr)
     DateStr = DateStr.replace(/-/g, '');
     return Number(DateStr);
 }
@@ -302,9 +304,14 @@ function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end
         return -1;
     }
     let nb_days = pwn_date - start_date;
-    let today_hour = pwn_hour - start_hour + 1;
-    let time_slot = end_hour - start_hour + 1;
+    let today_hour = pwn_hour - start_hour;
+    let time_slot = end_hour - start_hour;
     let nb_hours = nb_days * time_slot + today_hour;
+    console.log("nb_days", nb_days);
+    console.log("today_hour", today_hour);
+    console.log("time_slot", time_slot);    
+    console.log("nb_hours", nb_hours)   
+
     return nb_hours
 }
 
@@ -312,7 +319,6 @@ function calculateTimeDifference(start_date, start_hour, pwn_date, pwn_hour, end
 async function getGlobalData(ctfs_id, userList) {
     const previousPoint = document.getElementById('previousPoint').checked;
     let parameters = "?ctf_id=" + ctfs_id;
-    console.log("init userList", userList)
     try {
         const response = await fetch('/api/data' + parameters);
         const data = await response.json();
@@ -365,10 +371,16 @@ async function getData(ctfs_id, userList, date = null) {
 
         // Group data by user
         userList = data.reduce((acc, entry) => {
-            const hour = entry.compromise_time.split('T')[1].split(':')[0];
+            let hour = entry.compromise_time.split('T')[1].split(':')[0];
+            // Remove 0 if it's the first character
+            if (hour[0] === '0') {
+                hour = hour[1];
+            }
             let dateD = entry.compromise_time.split('T')[0];
             dateD = dateD.replace(/-/g, '');
             const dateInt = convertToYYYYMMDD(dateD);
+            console.log("dateInt - selectedDate", dateInt, selectedDate)
+            console.log("hour", hour)
             if (dateInt == selectedDate) {
                 if (!acc[entry.username]) {
                     acc[entry.username] = {};
@@ -416,6 +428,7 @@ async function listUsers(ctfs_id) {
 
 
 function generate_daily_graph(ctfs_id, chartId, date = null) {
+    console.log("Date", date)
     listUsers(ctfs_id).then(userList => {
         getData(ctfs_id, userList, date).then(usersData => {
             const labels = generate_labels();

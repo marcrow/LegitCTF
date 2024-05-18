@@ -6,7 +6,7 @@ const { checkVMCookie } = require('../middlewares/securityControls');
 const { createCookie } = require('../controllers/vmCookie');
 const utils = require('../controllers/utils');
 const sseMiddleware = require('../middlewares/sse');
-const { convertToDateSQL, convertToYYYYMMDD } = require('../controllers/utils');
+const { convertToDateSQL, convertToYYYYMMDD, getFormattedDate, getFormattedHour } = require('../controllers/utils');
 
 function sendEventsToAll(data, connections) {
     if (!connections) {
@@ -27,6 +27,9 @@ function sendEventsToAll(data, connections) {
     });
 }
 
+
+
+
 router.get('/test', sseMiddleware, async (req, res) => {
     try {
         res.send('OK');
@@ -37,8 +40,6 @@ router.get('/test', sseMiddleware, async (req, res) => {
             "machine": "ctf_machine_name",
             "day": 20240110,
             "hour": 11
-            // "day": convertToYYYYMMDD(convertToDateSQL(new Date().toISOString())),
-            // "hour": new Date().toISOString().split("T")[1].split(".")[0],
         }
         sendEventsToAll(notifData, req.connections);
     } catch (error) {
@@ -185,12 +186,14 @@ router.post('/pwn', validateArgs, checkVMCookie, sseMiddleware, async (req, res)
             "user": user.username,
             "machine": ctf_machine_name,
             "ctf_id": ctf_id,
-            "day": convertToYYYYMMDD(new Date().toISOString().split("T")[0]),
-            "hour": new Date().toISOString().split("T")[1].split(".")[0].split(":")[0],
+            "day": getFormattedDate(),
+            "hour": getFormattedHour(),
         }
 
         console.log(convertToYYYYMMDD(new Date().toISOString()))
         console.log(convertToDateSQL(new Date().toISOString()))
+        console.log(getFormattedDate())
+        console.log(getFormattedHour())
         console.log(new Date().toISOString())
 
 

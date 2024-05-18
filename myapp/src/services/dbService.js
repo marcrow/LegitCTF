@@ -1,6 +1,7 @@
 // src/services/dbService.js
 const mariadb = require('mariadb');
 
+
 const pool = mariadb.createPool({
     host: process.env.DB_HOST, 
     user: process.env.DB_USER, 
@@ -28,7 +29,7 @@ async function getCompromisedData() {
     try {
         conn = await pool.getConnection();
         // Modify the query to fetch the actual compromised data
-        const rows = await conn.query("SELECT user_id, DATE(compromise_time) AS date, COUNT(*) AS num_compromised FROM pwned GROUP BY user_id, DATE(compromise_time);");
+        const rows = await conn.query("SELECT user_id, DATE_FORMAT(compromise_time, '%Y-%m-%dT%H:%i:%s') AS date, COUNT(*) AS num_compromised FROM pwned GROUP BY user_id, DATE(compromise_time);");
         return rows;
     } catch (err) {
         throw err;
@@ -47,7 +48,7 @@ async function getPwnedInfo(ctfId) {
             SELECT 
                 u.username,
                 m.machine_name,
-                p.compromise_time
+                DATE_FORMAT(p.compromise_time, '%Y-%m-%dT%H:%i:%s') AS compromise_time
             FROM 
                 pwned p
             JOIN 
@@ -77,7 +78,7 @@ async function getPwnedInfoByDate(ctfId, pwn_date){
             SELECT 
                 u.username,
                 m.machine_name,
-                p.compromise_time
+                DATE_FORMAT(p.compromise_time, '%Y-%m-%dT%H:%i:%s') AS compromise_time
             FROM 
                 pwned p
             JOIN 
@@ -85,12 +86,13 @@ async function getPwnedInfoByDate(ctfId, pwn_date){
             JOIN 
                 ctfs_machines m ON p.ctf_id = m.ctf_id AND p.ctf_machine_name = m.machine_name
             WHERE 
-                p.ctf_id = ? AND DATE(compromise_time) = ?
+                p.ctf_id = ? AND DATE(p.compromise_time) = ?
             ORDER BY 
                 p.compromise_time ASC;
         `;
         const rows = await conn.query(query, [ctfId, pwn_date]);
-        return rows;
+        console.log("rows: ", rows);
+        return rows;2
     } catch (err) {
         console.error('Error in getPwnedInfoByDate:', err);
         throw err;
