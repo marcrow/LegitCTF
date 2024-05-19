@@ -27,6 +27,16 @@ flag_file="${dir}/../vm_client/flag.conf"
 # ansible password file path
 ansible_password_file="${dir}/../ansible/secrets/ansible_passwd"
 
+# Test if secrets directory exists
+if [ ! -d "${dir}/../ansible/secrets" ]; then
+    mkdir "${dir}/../ansible/secrets"
+    if [ $? -ne 0 ]; then
+        error "An error occured while creating the secrets directory"
+    else 
+        success "The secrets directory has been created"
+    fi
+fi
+
 # Apply the changes to a file
 createVariable() {
     operator="="
@@ -90,7 +100,7 @@ else
     success "The ansible user password has been also generated"
 fi
 
-echo $ansible_user_password > $ansible_password_file
+echo "$ansible_user_password" > $ansible_password_file
 if [ $? -ne 0 ]; then
     error "An error occured while saving the ansible user password"
 else 
