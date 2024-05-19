@@ -15,9 +15,9 @@ He will then be asked for his password to authenticate it. The database is then 
 
 ## Installation
 ### Prerequisite
-docker compose
-ansible
-ansible-playbook
+. docker with compose plugin
+. ansible
+. sshpass
 
 You must also installed yq. On Ubuntu :
 

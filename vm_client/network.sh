@@ -57,7 +57,7 @@ configure_netplan() {
     echo "    ethernets:" >> $NETPLAN_FILE
     echo "        ${INTERFACE}:" >> $NETPLAN_FILE
     echo "            dhcp4: no" >> $NETPLAN_FILE
-    echo "            addresses: [${IPADDR}/${NETMASK}]" >> $NETPLAN_FILE
+    echo "            addresses: [${IPADDR}${NETMASK}]" >> $NETPLAN_FILE
     
     echo "IP configuration apply to ${INTERFACE}. Restart the interface..."
     netplan apply

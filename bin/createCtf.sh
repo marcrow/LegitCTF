@@ -208,7 +208,7 @@ else
         error "The ctf_id has not been replaced"
     fi
 
-    source "${dir}/../app/.env"
+    source "${dir}/../myapp/.env"
     host=$(echo $MACHINE_NETWORK | cut -d "." -f1-3)
     host="$host.1"
     ask "Enter the vm host ip - used by vm to communicate with the ctf server (auto: $host): "
@@ -272,5 +272,5 @@ fi
 
 title1 " Create participant for the ctf"
 echo "Connect to the ctf platform as admin and create a new user"
-source "${dir}/../app/.env"
+source "${dir}/../myapp/.env"
 echo "https://127.0.0.1:$PORT/admin" 

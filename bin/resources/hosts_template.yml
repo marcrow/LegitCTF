@@ -13,4 +13,6 @@ all:
       ctf_id: $ctf_id
       ctf: $ctf_name
       vm_host_ip: $vm_host_ip
-    hosts:
+    children:
+      vm_linux:
+        hosts:
