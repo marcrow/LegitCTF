@@ -22,7 +22,7 @@ ansible-playbook
 You must also installed yq. On Ubuntu :
 
 ```bash
-snap install yq --channel=v3/stable
+snap install yq --channel=v4/stable
 ```
 
 On your hypervisor, a host only network configured (with dhcp, i think it is configured by default on VirtualBox).

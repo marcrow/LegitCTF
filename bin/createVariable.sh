@@ -37,6 +37,16 @@ if [ ! -d "${dir}/../ansible/secrets" ]; then
     fi
 fi
 
+# Test if the myapp certs directory exists
+if [ ! -d "${dir}/../myapp/certs" ]; then
+    mkdir "${dir}/../myapp/certs"
+    if [ $? -ne 0 ]; then
+        error "An error occured while creating the certs directory"
+    else 
+        success "The certs directory has been created"
+    fi
+fi
+
 # Apply the changes to a file
 createVariable() {
     operator="="
