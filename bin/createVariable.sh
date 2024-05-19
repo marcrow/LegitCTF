@@ -17,6 +17,7 @@ source "${dir}/styles.sh"
 
 # .env file path
 env_file="${dir}/../myapp/.env"
+env_file_template="${dir}/resources/environment"
 
 # docker-compose file path
 docker_compose_file="${dir}/../docker-compose.yml"
@@ -46,6 +47,15 @@ if [ ! -d "${dir}/../myapp/certs" ]; then
         success "The certs directory has been created"
     fi
 fi
+
+# Test if app/.env file exists
+cp $env_file_template $env_file
+if [ $? -ne 0 ]; then
+    error "An error occured while creating the .env file"
+else 
+    success "The .env file has been created"
+fi
+
 
 # Apply the changes to a file
 createVariable() {
