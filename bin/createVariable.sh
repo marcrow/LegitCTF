@@ -176,7 +176,7 @@ else
     success "The frontend port has been set in the docker-compose file"
 fi
 
-sed -i "s/^EXPOSE .*/EXPOSE $PORT/" Dockerfile    
+sed -i "s/^EXPOSE .*/EXPOSE $frontend_port/" Dockerfile    
 if [ $? -ne 0 ]; then
     error "An error occured while setting the frontend port in the Dockerfile"
 else 
