@@ -1,5 +1,8 @@
 # Ansible secrets
 ansible/secrets/*
+ansible/inventory/*
+ansible/ansible.cfg
+
 
 # SSL certificates
 myapp/certs/*
