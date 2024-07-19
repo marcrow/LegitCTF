@@ -1,8 +1,33 @@
+- name: Retrieve ansible password from secrets/ansible_passwd
+  delegate_to: localhost
+  become: no
+  slurp:
+    src: ../secrets/ansible_passwd  # Relative path from the playbook location
+  register: slurped_password
+
+- name: Decode the ansible password
+  set_fact:
+    ansible_passwd: "{{ slurped_password.content | b64decode }}"
+
+- name: debug
+  debug:
+    var: ansible_passwd
+
+- name: Hash the ansible password
+  set_fact:
+    ansible_passwd_hash: "{{ ansible_passwd | password_hash('sha512') }}"
+
+
+- name: Debug ansible_passwd_hash
+  debug:
+    msg: "Hashed password is {{ ansible_passwd_hash }}"
+
 - name: Create Ansible user
   user:
     name: "{{ ansible_user_name }}"
-    password: "{{ 'ansible_passwd' | password_hash('sha512') }}"
+    password: "{{ ansible_passwd_hash }}"
     shell: /bin/bash
+    update_password: always
     create_home: yes
 
 - name: Provides sudo access to the Ansible user

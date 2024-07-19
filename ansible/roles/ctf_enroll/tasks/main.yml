@@ -197,7 +197,7 @@
   when: "'vm_windows' in group_names"
 
 
-- name: Linux - Add ctf if to connect to the api
+- name: Linux - Add ctf id to connect to the api
   ansible.builtin.lineinfile:
     path: "{{ flag_location }}/flag.conf"
     line: "CTF_ID={{ ctf_id }}"

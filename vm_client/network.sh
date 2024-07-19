@@ -24,6 +24,31 @@ if ! ip link show $INTERFACE > /dev/null 2>&1; then
     exit 1
 fi
 
+# # test the netmask format ex: /24 or 255.255.255.0
+# # return 0 if / format
+# # return 1 if 255 format
+# get_netmask_format() {
+#     local netmask=$1
+#     #start with / and followed by numbers 
+#     if [[ $netmask =~ ^/[0-9]+$ ]]; then
+#         # Remove the / before performing the comparison
+#         local netmask_value=${netmask:1}
+#         if [ $netmask_value -lt 8 ] || [ $netmask_value -gt 30 ]; then
+#             echo "Invalid netmask value. It should be between 8 and 30."
+#             exit 1
+#         fi
+#         return 1
+#     else 
+#         #start by number and followed by 3 dots and numbers
+#         if [[ $netmask =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+#             return  0
+#         else
+#             echo "Invalid netmask format"
+#             exit 1
+#         fi
+#     fi 
+# }
+
 configure_traditional() {
     CFG_FILE="/etc/network/interfaces.d/${INTERFACE}.cfg"
     echo "Configure with /etc/network/interfaces.d/"
@@ -32,8 +57,7 @@ configure_traditional() {
     
     echo "auto ${INTERFACE}" > $CFG_FILE
     echo "iface ${INTERFACE} inet static" >> $CFG_FILE
-    echo "    address ${IPADDR}" >> $CFG_FILE
-    echo "    netmask ${NETMASK}" >> $CFG_FILE
+    echo "    address ${IPADDR}/${NETMASK}" >> $CFG_FILE
 
     # Remove DHCP configuration if exists
     if grep -q "iface $INTERFACE inet dhcp" /etc/network/interfaces; then
@@ -48,6 +72,7 @@ configure_traditional() {
 
 configure_netplan() {
     echo "netplan configuration"
+    NETMASK_FORMAT=$?
     NETPLAN_FILE="/etc/netplan/01-netcfg-${INTERFACE}.yaml"
 
     ip addr flush dev $INTERFACE
@@ -61,7 +86,7 @@ configure_netplan() {
     
     echo "IP configuration apply to ${INTERFACE}. Restart the interface..."
     netplan apply
-    echo "Finished. The IP address ${IPADDR}/${NETMASK} has been configured on ${INTERFACE}."
+    echo "Finished. The IP address ${IPADDR}${NETMASK} has been configured on ${INTERFACE}."
 }
 
 # check if netplan is installed

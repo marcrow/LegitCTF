@@ -41,10 +41,52 @@
   become: yes
   ignore_errors: yes
 
-# - name: remove prof user
-#   user:
-#     name: prof
-#     state: absent
-#   become: yes
-#   ignore_errors: yes
+- name: Retrieve ansible password from secrets/ansible_passwd
+  delegate_to: localhost
+  become: no
+  slurp:
+    src: ../secrets/ansible_passwd  # Relative path from the playbook location
+  register: slurped_password
 
+- name: Decode the ansible password
+  set_fact:
+    ansible_passwd: "{{ slurped_password.content | b64decode }}"
+
+- name: debug
+  debug:
+    var: ansible_passwd
+
+- name: Hash the ansible password
+  set_fact:
+    ansible_passwd_hash: "{{ ansible_passwd | password_hash('sha512') }}"
+
+
+- name: Debug ansible_passwd_hash
+  debug:
+    msg: "Hashed password is {{ ansible_passwd_hash }}"
+
+- name: modify prof password
+  become: yes
+  user:
+    name: "prof"
+    password: "{{ ansible_passwd_hash }}"
+    shell: /bin/bash
+    update_password: always
+    create_home: no
+  ignore_errors: yes
+
+- name: Check if 'prof' user exists in /etc/shadow
+  become: yes
+  command: grep '^prof:' /etc/shadow
+  register: prof_in_shadow
+  ignore_errors: yes
+
+- name: Remove 'prof' line from /etc/passwd if not present in /etc/shadow
+  become: yes
+  lineinfile:
+    path: /etc/passwd
+    regexp: '^prof:'
+    state: absent
+  when:
+    - prof_in_shadow.rc != 0
+  

@@ -194,9 +194,9 @@ async function getCtfById(ctfId) {
     let conn
     try {
         // Assuming ctfId has been validated as an integer before this function is called
-
+        console.log("ctfId: ", ctfId)
         // Using a parameterized query to avoid SQL injection
-        const query = 'SELECT * FROM ctfs WHERE ctf_id = ?';
+        const query = "SELECT ctf_id, DATE_FORMAT(start_date, '%Y-%m-%dT%H:%i:%s') AS start_date, DATE_FORMAT(end_date, '%Y-%m-%dT%H:%i:%s') AS end_date, start_hour, end_hour FROM ctfs WHERE ctf_id = ?";
         const values = [ctfId];
 
         // For MySQL, using promise-based query execution
@@ -208,6 +208,7 @@ async function getCtfById(ctfId) {
         if (!ctfData || ctfData.length === 0) {
             return null; // or throw an error or however you want to handle this case
         }
+        console.log("CTFdata: ", ctfData); // Log the data for debugging
 
         return ctfData; // Assuming you want the first match (should be only one due to ID uniqueness)
     } catch (error) {
