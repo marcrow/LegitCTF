@@ -40,7 +40,7 @@ chmod +x install.sh
 
 ### Vulnerable machine
 1. Add the content of vm_client directory on your machines.
-2. On your vm add in your /etc/hosts add the CN set in the openssl 
+2. On your vm add in your /etc/hosts the CN set in the openssl 
 for example 127.0.0.1 ctf
 3. Use ansible playbook or set manually variable in flag.conf
 4. Authenticate your vm to your CTF server via the command
@@ -79,9 +79,68 @@ You have to enroll your machine to register them as accessible instance of a mac
 The enroll process include a cleaning process to avoid to have unwanted log or history on the system.
 
 
-## Usage
+## This is your first time
 
-Examples and instructions on how to use the project.
+No problem there is a script to assist you :)
+Execute this command
+``` bash
+bin/firstInit.sh
+```
+It will call for you all the other scripts to create CTF, Machine, Instance, Admin ....
+
+## Administrate your ctf
+
+### Create another ctf
+
+You have to execute :
+
+```bash
+bin/createCtf.sh
+```
+
+It will assist you to create the ansible configuration and edit the database for you.
+
+### Add other machine / challenge
+
+```bash
+bin/createMachine.sh
+```
+
+
+### Add another instance
+
+```bash
+bin/createInstance.sh
+```
+
+
+### enroll a VM to an instance
+
+You need to have a user with root privilege on the VM and know is password.
+You need to set 2 netwi
+
+ ansible-playbook  -u "prof" -e 'ansible_user=prof' --ask-pass  playbooks/init.yml -i ./inventory/5A2025_hosts.yml --ask-become-pass -e 'ansible_host=192.168.1.172' -l "Fast_10"
+
+### Add users for ctf
+
+You have to start the docker if it's not already done.
+```bash
+docker compose up
+```
+
+
+Then, connect from the CTF host (where the docker run) to the web interface, by default https://127.0.0.1:8080 (i know it's not a common https port i will correct it later).
+On the top left, there is an admin button.
+Log in with the admin credntials you have set when you run firstInit. You can also create a new admin with bin/createAdmin.sh.
+In the Administration interface, you can easily add user and reset their passwords.
+
+IMPORTANT: to connnect as an admin you have to be locally connected or it will not work.
+
+
+### Start an instance 
+```bash
+ansible-playbook playbooks/start.yml -i ./inventory/<host_file> -l <instance_name>
+```
 
 ## Contributing
 

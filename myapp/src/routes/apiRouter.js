@@ -10,7 +10,6 @@ router.get('/events', sseMiddleware, (req, res) => {
 
 });
 
-
 // Define the API route for getting a single CTF by ID
 router.get('/ctfs/:ctfId', validateInteger('ctfId'), async (req, res) => {
     try {
@@ -32,7 +31,6 @@ router.get('/listUsers/:ctfId', validateInteger('ctfId'), async (req, res) => {
     }
 });
 
-
 router.get('/listCtfs', async (req, res) => {
     try {
         const ctfData = await dbService.listCtf();
@@ -44,22 +42,28 @@ router.get('/listCtfs', async (req, res) => {
 
 router.get('/data', validateArgs, async (req, res) => {
     const ctfId = req.query.ctf_id; // Get ctf_id from query parameters
-    pwn_date = ""
-    console.log("req.params.date: ", req.query)
-    if(!req.query.date){
-        //getLastpawn
+    let pwn_date = "";
+    console.log("req.query.date: ", req.query.date);
+    if (!req.query.date) {
+        // Get the last pwn date
         let pwnDate = await dbService.getLastPwn(ctfId);
-        if( pwnDate && pwnDate != null && pwnDate.latestCompromiseTime != null){
+        console.log("pwnDate: ", pwnDate);
+        if (pwnDate && pwnDate.latestCompromiseTime) {
+            console.log("pwnDate.latestCompromiseTime: ", pwnDate.latestCompromiseTime);
             pwn_date = getFormattedDate(pwnDate.latestCompromiseTime);
-        }
-        else{
+        } else {
             const ctf_data = await dbService.getCtfById(ctfId);
-            pwn_date = getFormattedDate(ctf_data.start_date);
-            console.log("pwn_date: ", pwn_date);
+            console.log("ctf_data: ", ctf_data);
+            if (ctf_data && ctf_data.start_date) {
+                console.log("ctf_data.start_date: ", ctf_data.start_date);
+                pwn_date = getFormattedDate(ctf_data.start_date);
+            } else {
+                return res.status(400).send('Invalid CTF data');
+            }
+        console.log("pwn_date: ", pwn_date);
         }
-    }
-    else{
-        const dateInt = req.query.date; // Get ctf_id from query parameters
+    } else {
+        const dateInt = req.query.date; // Get date from query parameters
         pwn_date = convertToDateSQL(dateInt);
     }
     try {
@@ -71,7 +75,6 @@ router.get('/data', validateArgs, async (req, res) => {
         res.status(500).send('Error fetching data for CTF');
     }
 });
-
 
 router.get('/machines', validateArgs, async (req, res) => {
     const ctfId = req.query.ctf_id; // Get ctf_id from query parameters
@@ -86,6 +89,5 @@ router.get('/machines', validateArgs, async (req, res) => {
         res.status(500).send('Error fetching machines for CTF');
     }
 });
-
 
 module.exports = router;

@@ -196,7 +196,7 @@ async function getCtfById(ctfId) {
         // Assuming ctfId has been validated as an integer before this function is called
         console.log("ctfId: ", ctfId)
         // Using a parameterized query to avoid SQL injection
-        const query = "SELECT ctf_id, DATE_FORMAT(start_date, '%Y-%m-%dT%H:%i:%s') AS start_date, DATE_FORMAT(end_date, '%Y-%m-%dT%H:%i:%s') AS end_date, start_hour, end_hour FROM ctfs WHERE ctf_id = ?";
+        const query = "SELECT ctf_name, ctf_id, DATE_FORMAT(start_date, '%Y-%m-%dT%H:%i:%s') AS start_date, DATE_FORMAT(end_date, '%Y-%m-%dT%H:%i:%s') AS end_date, start_hour, end_hour FROM ctfs WHERE ctf_id = ?";
         const values = [ctfId];
 
         // For MySQL, using promise-based query execution
