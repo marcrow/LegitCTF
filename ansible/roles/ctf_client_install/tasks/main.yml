@@ -9,8 +9,17 @@
   loop:
     - "flag.sh"
     - "flag.conf"
-    - "cert.pem"
     - "network.sh"
+  become: yes
+  when: "'vm_linux' in group_names"
+
+- name: Copy cert to remote host
+  copy:
+    src: "../../../myapp/certs/cert.pem"
+    dest: "{{ flag_location }}"
+    owner: "root"
+    group: "root"
+    mode: '0744'
   become: yes
   when: "'vm_linux' in group_names"
 
