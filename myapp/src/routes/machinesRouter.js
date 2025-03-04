@@ -60,11 +60,13 @@ router.post('/firstAuth/', validateArgs, sseMiddleware,  async (req, res) => {
         }
         const id = Number(await dbService.getInstanceId(ctf_id, machine_name, ip))
         if(id != 0 && id != "NaN"){
-            console.log("id: ", id)
+            console.log("id: ", id);
+            console.log("instance already exist");
             return res.status(400).send('instance already exist');
         }
         rows = await dbService.getDefaultPassword(ctf_id, machine_name);
         if (default_password != rows.default_password) {
+            console.log("Error wrong password");
             return res.status(400).send('wrong password');
         }
         const new_cookie = createCookie();

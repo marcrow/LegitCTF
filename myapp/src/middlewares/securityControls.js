@@ -1,6 +1,8 @@
 const dbService = require('../services/dbService'); // Adjust the path as necessary
 const utils = require('../controllers/utils');
 const cookie = require('cookie');
+const ipRangeCheck = require("ip-range-check");
+
 
 function validateInteger(paramName) {
     return function(req, res, next) {
@@ -188,26 +190,8 @@ function validate_username(username){
 }
 
 
-const ip_req = require('ip');
 function checkIfIpIsAllowed(ipAddress, networks) {
-    // Convert the IP address to a number for comparison
-    const ipNumber = Number(ipAddress.replace(/\./g, ''));
-
-    // Iterate through each network in the list
-    for (const network of networks) {
-        // Create a subnet object for the current network
-        const subnetObject = ip_req.cidrSubnet(network);
-        const minAddress = Number(subnetObject.firstAddress.replace(/\./g, ''));
-        const maxAddress = Number(subnetObject.lastAddress.replace(/\./g, ''));
-
-        // Check if the IP address falls within the range of the current network
-        if (ipNumber >= minAddress && ipNumber <= maxAddress) {
-            return true;
-        }
-    }
-
-    // If the IP address does not fall within any of the networks, return false
-    return false;
+    return networks.some((network) => ipRangeCheck(ipAddress, network));
 }
 
 function machineAccess(req, res, next) {
@@ -222,50 +206,48 @@ function machineAccess(req, res, next) {
 }
 
 
-function controlAdminSession(req, res, next) {
-    if(req.path == "/login" || req.path == "/logout" || req.path == "/admin/login"){
-        next();
-        return;
-    }
-    
-    if(req.session && req.session.admin){
-        next();
-    }
-    else{
-        var ipnumber = utils.getClientIPv4(req);
-        console.log("Forbidden access from (no session)" + ipnumber);
-        return res.redirect('/admin/login'); // Redirect to the login page
-    }
-}
-
 function controlAdminNetwork(req, res, next) {
-    var adminNetwork = process.env.ADMIN_NETWORK.split(',');
-    var ipnumber = utils.getClientIPv4(req);
-    if (checkIfIpIsAllowed(ipnumber, adminNetwork))
-    {
-        next();
+    const adminNetwork = process.env.ADMIN_NETWORK ? process.env.ADMIN_NETWORK.split(',') : []; // Handle cases where ADMIN_NETWORK is not defined
+    const ipnumber = utils.getClientIPv4(req);
+
+    if (adminNetwork.length === 0) {
+        console.warn("ADMIN_NETWORK environment variable is not set. All IPs will be considered as non-admin.");
+        console.log("Forbidden access from (ADMIN_NETWORK is empty) " + ipnumber);
+        return res.status(403).send('Forbidden');
     }
-    else
-    {
+
+    if (checkIfIpIsAllowed(ipnumber, adminNetwork)) {
+        console.log("Allowed access from " + ipnumber);
+        next();
+    } else {
         console.log("Forbidden access from " + ipnumber);
         return res.status(403).send('Forbidden');
     }
 }
 
+function controlAdminSession(req, res, next) {
+    if (req.path === "/login" || req.path === "/logout" || req.path === "/login") {
+        next();
+        return;
+    }
+
+    if (req.session && req.session.admin) {
+        next();
+    } else {
+        const ipnumber = utils.getClientIPv4(req);
+        console.log("Forbidden access from (no session) " + ipnumber);
+        return res.redirect('/admin/login'); // Redirect to the login page
+    }
+}
+
 function adminAccess(req, res, next) {
     // Call controlAdminNetwork middleware
-    controlAdminNetwork(req, res, function(err) {
+    controlAdminNetwork(req, res, (err) => {
         if (err) {
             return res.status(403).send('Forbidden');
         }
-        
         // Call controlAdminSession middleware
-        controlAdminSession(req, res, function(err) {
-            if (err) {
-                return res.redirect('/admin/login');
-            }
-            next();
-        });
+        controlAdminSession(req, res, next);
     });
 }
 
