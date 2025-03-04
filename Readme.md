@@ -1,4 +1,5 @@
-# Mad CTF
+# LegitCTF
+Reinforces fair play. 
 
 A simple project to create your own ctf locally. Working on docker it is easy to deploy and custom.
 The main idea behind this project is to stop to use common ctf flag, because it is easy for player to share it with their firends.
@@ -145,6 +146,12 @@ ansible-playbook playbooks/start.yml -i ./inventory/<host_file> -l <instance_nam
 ## Contributing
 
 Guidelines for contributing to the project.
+
+
+## To do List
+
+- Monitoring of flag validation to detect potential cheating.
+- Easy backup generator
 
 ## License
 
