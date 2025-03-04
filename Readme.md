@@ -1,6 +1,8 @@
 # LegitCTF
 Reinforces fair play. 
 
+![alt text](resources/logo.png)
+
 A simple project to create your own ctf locally. Working on docker it is easy to deploy and custom.
 The main idea behind this project is to stop to use common ctf flag, because it is easy for player to share it with their firends.
 To avoid this, a password is provided for each participant. When a participant compromises a machine, he can execute the flag.sh script on the target to validate the machine's. 
@@ -51,7 +53,7 @@ chmod +x flag.sh
 ### How to add new machines
 Machine are considered as challenge. A VM isn't a machine but an instance of a machine.
 Before to add new instance inside a ctf you should define a machine. You can link multiple instance to a machine.
-To create a new machine you can use bin/createMachine.sh.
+To create a new machine you can use the sctipt bin/createMachine.sh.
 
 
 ### How to create new instance
