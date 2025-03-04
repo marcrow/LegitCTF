@@ -101,3 +101,8 @@ all:
             ip: 192.168.56.26
             machine_name: Rovigo
             flag_location: /root
+          Clock_27:
+            ansible_host: 192.168.56.27
+            ip: 192.168.56.27
+            machine_name: Clock
+            flag_location: /root

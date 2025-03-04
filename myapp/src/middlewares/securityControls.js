@@ -189,28 +189,33 @@ function validate_username(username){
 
 
 const ip_req = require('ip');
-function checkIfIpIsAllowed(ipAddress, subnet){
-        // Utilisez la fonction `ip.cidrSubnet()` pour créer un objet de sous-réseau à partir de la notation CIDR
-    const subnetObject = ip_req.cidrSubnet(subnet);
-    min_address = Number(subnetObject.firstAddress.replace(/\./g, ''));
-    max_address = Number(subnetObject.lastAddress.replace(/\./g, ''));
-    ipAddress = Number(ipAddress.replace(/\./g, ''));
-    return ipAddress >= min_address && ipAddress <= max_address;    
+function checkIfIpIsAllowed(ipAddress, networks) {
+    // Convert the IP address to a number for comparison
+    const ipNumber = Number(ipAddress.replace(/\./g, ''));
+
+    // Iterate through each network in the list
+    for (const network of networks) {
+        // Create a subnet object for the current network
+        const subnetObject = ip_req.cidrSubnet(network);
+        const minAddress = Number(subnetObject.firstAddress.replace(/\./g, ''));
+        const maxAddress = Number(subnetObject.lastAddress.replace(/\./g, ''));
+
+        // Check if the IP address falls within the range of the current network
+        if (ipNumber >= minAddress && ipNumber <= maxAddress) {
+            return true;
+        }
+    }
+
+    // If the IP address does not fall within any of the networks, return false
+    return false;
 }
 
-
-
-
-
 function machineAccess(req, res, next) {
-    var machinesNetwork = process.env.MACHINE_NETWORK;
+    var machinesNetwork = process.env.MACHINE_NETWORK.split(',');
     var ipnumber = utils.getClientIPv4(req);
-    if (checkIfIpIsAllowed(ipnumber, machinesNetwork))
-    {
+    if (checkIfIpIsAllowed(ipnumber, machinesNetwork)) {
         next();
-    }
-    else
-    {
+    } else {
         console.log("Forbidden access from " + ipnumber);
         res.status(403).send('Forbidden');
     }
@@ -234,7 +239,7 @@ function controlAdminSession(req, res, next) {
 }
 
 function controlAdminNetwork(req, res, next) {
-    var adminNetwork = process.env.ADMIN_NETWORK
+    var adminNetwork = process.env.ADMIN_NETWORK.split(',');
     var ipnumber = utils.getClientIPv4(req);
     if (checkIfIpIsAllowed(ipnumber, adminNetwork))
     {
