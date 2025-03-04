@@ -19,11 +19,13 @@ services:
       DB_HOST: db
       TZ: Europe/Paris
     ports:
-      - "8080:8080"
+      - "443:8080"
     depends_on:
       - db
     networks:
-      - app-network
+      app-network:
+      ctf-docker:
+        ipv4_address: 192.168.9.100
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -31,3 +33,9 @@ volumes:
   db_data:
 networks:
   app-network:
+  ctf-docker:
+    name: ctf-docker
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.9.0/24 
